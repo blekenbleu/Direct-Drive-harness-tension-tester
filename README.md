@@ -25,7 +25,7 @@ for use as [traction motors](https://en.wikipedia.org/wiki/Traction_motor),
 - Are brief predistortion pulses wanted for more responsive torque application and release?
    - If so, how much and for how long?
 
-At least 8 slider controls are wanted:
+At least 8 slider controls are wanted for testing:
 - test cycle frequency (1/period)
 - torque rise time (% of period)
 - torque fall time (% of period)
@@ -34,3 +34,6 @@ At least 8 slider controls are wanted:
 - PWM max %
 - predistortion amplitude (% of (maz-min) change)
 - predistortion duration (PWM cycles)
+
+This wants [**multi-character control for SimHub Custom serial devices**](https://github.com/blekenbleu/blekenbleu.github.io/tree/master/Arduino/blek2char) to handle that many variables,  
+or perhaps its somewhat simpler predecessor, [Blue2charServo](https://github.com/blekenbleu/blekenbleu.github.io/tree/master/Arduino/Blue2charServo).
