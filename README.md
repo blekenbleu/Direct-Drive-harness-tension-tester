@@ -30,7 +30,7 @@ for use as [traction motors](https://en.wikipedia.org/wiki/Traction_motor),
 Testing will employ this waveform, sampled at SimHub 60Hz rate:  
 ![](test.png)  
 
-At least 10 controls are wanted for testing:
+At least 9 controls are wanted for testing:
 - test period  (60 = 1 second)
 - rise time (0 to period/3)
 - hold time (0 to period/3)
@@ -38,7 +38,7 @@ At least 10 controls are wanted for testing:
 - max signal magnitude
 - min signal magniitude
 
-Signals to Blue Pill:  
+Up to 5 signals to Blue Pill:  
 - Testing sample values driving PWM %
 - PWM frequency &nbsp; ( ~ 20kHz?)
 - predistortion amplitude (% of sample value changes) to compensate slew rate limits:
@@ -47,7 +47,8 @@ Signals to Blue Pill:
   worst case, scooter motor may want brief negative predistortion to relax tension,  
   consuming both sides of an "H" PWM driver per motor:  
   ![](https://www.allaboutcircuits.com/uploads/articles/simple-H-bridge.jpg)  
-- optional reference measurements to echo, along with sample values, for capture and plotting,
+- optional reference measurements to echo, along with sample values,  
+  for capture from SimHub "Incoming serial data" e.g. to plot,
   where reference tension measurements may be captured from a sim brake pedal load cell.
   
 This wants [**multi-character control for SimHub Custom serial devices**](https://github.com/blekenbleu/blekenbleu.github.io/tree/master/Arduino/blek2char) to handle that many variables,  
