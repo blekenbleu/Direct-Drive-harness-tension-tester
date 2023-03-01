@@ -1,5 +1,7 @@
 # Direct Drive sim racing harness tension test rig
- Arduino sketch and SimHub Custom Serial for [PWM scooter motor torque](https://www.picotech.com/library/application-note/some-power-pwm-drivers-for-electric-dc-motors)
+ An Arduino sketch and [SimHub Custom Serial profile](https://raw.githubusercontent.com/blekenbleu/SimHub-profiles/main/Fake8.shsds)
+ for scooter motor [PWM torque control](https://www.picotech.com/library/application-note/some-power-pwm-drivers-for-electric-dc-motors),  
+ these will employ the [Fake8 SimHUb plugin](https://github.com/blekenbleu/Fake8) for sending 8-bit commands to the Arduino sketch.
 
 Several Sim racing harness tensioners use either stepper motors or hobby/robot servo motors,  
 either choice being IMO suboptimal:
@@ -8,8 +10,8 @@ either choice being IMO suboptimal:
 
 A few tensioners already use PWM control of DC motors,
 where PWM % directly relates to stall torque (tension).  
-A stalled electric motor generates no back [EMF](https://en.wikipedia.org/wiki/Counter-electromotive_force),
-consequently using much lower than rated motor Voltage.  
+A stalled electric motor generates no [back EMF](https://en.wikipedia.org/wiki/Counter-electromotive_force),
+consequently needing much lower than rated motor Voltage.  
 [Electric scooter motors](https://www.amazon.com/dp/B09KRGZX3G?tag=racedep-20)
 seemingly deliver appropriate torque for direct drive harness tensioning, [as discussed here](https://www.racedepartment.com/threads/2dof-harness-tensionner-with-fly-ptmover.194331/page-9#post-3531954).  
 ![](https://m.media-amazon.com/images/I/71aZ-9HlhdL._SL1500_.jpg)  
