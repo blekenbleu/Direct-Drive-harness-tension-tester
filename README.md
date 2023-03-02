@@ -1,8 +1,10 @@
 # Direct Drive sim racing harness tension test rig
- An Arduino sketch and [SimHub Custom Serial profile](https://raw.githubusercontent.com/blekenbleu/SimHub-profiles/main/Fake8.shsds) 
+ An [Arduino sketch](https://github.com/blekenbleu/Arduino-Blue-Pill/tree/main/blek2byte) 
+ and [SimHub Custom Serial profile](https://raw.githubusercontent.com/blekenbleu/SimHub-profiles/main/Fake8.shsds) 
  for scooter motor [PWM torque control](https://www.picotech.com/library/application-note/some-power-pwm-drivers-for-electric-dc-motors):  
  ![](https://raw.githubusercontent.com/blekenbleu/Fake8/main/Fake8.png)  
- ...these will employ the [Fake8 SimHUb plugin](https://github.com/blekenbleu/Fake8) for sending 8-bit commands to the Arduino sketch.
+ ...these will employ the [Fake8 SimHUb plugin](https://github.com/blekenbleu/Fake8) for sending 8-bit commands
+ to the [Arduino sketch](https://github.com/blekenbleu/Arduino-Blue-Pill/tree/main/blek2byte).
 
 Several Sim racing harness tensioners use either stepper motors or hobby/robot servo motors,  
 either choice being IMO suboptimal:
