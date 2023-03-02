@@ -56,5 +56,5 @@ Up to 5 signals to Blue Pill:
   for capture from SimHub "Incoming serial data" e.g. to plot,
   where reference tension measurements may be captured from a sim brake pedal load cell.
   
-This wants [**multi-character control for SimHub Custom serial devices**](https://github.com/blekenbleu/blekenbleu.github.io/tree/master/Arduino/blek2char) to handle that many variables,  
-or perhaps its somewhat simpler predecessor, [Blue2charServo](https://github.com/blekenbleu/blekenbleu.github.io/tree/master/Arduino/Blue2charServo).
+This wants [**multi-byte control for SimHub Custom serial devices**](https://github.com/blekenbleu/Arduino-Blue-Pill/tree/main/blek2byte) 
+ to handle that many variables,  
