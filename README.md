@@ -1,7 +1,7 @@
 # Direct Drive sim racing harness tension test rig
  An [Arduino sketch](https://github.com/blekenbleu/Arduino-Blue-Pill/tree/main/blek2byte) 
  and [SimHub Custom Serial profile](https://raw.githubusercontent.com/blekenbleu/SimHub-profiles/main/Fake8.shsds) 
- for scooter motor [**PWM**](blob/main/PWM.md) torque control:  
+ for scooter motor [**PWM**](PWM.md) torque control:  
  ![](https://raw.githubusercontent.com/blekenbleu/Fake8/main/Fake8.png)  
  ...these will employ the [Fake8 SimHUb plugin](https://github.com/blekenbleu/Fake8) for sending 8-bit commands
  to the [Arduino sketch](https://github.com/blekenbleu/Arduino-Blue-Pill/tree/main/blek2byte).
