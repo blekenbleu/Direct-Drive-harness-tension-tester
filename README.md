@@ -56,5 +56,12 @@ Up to 5 signals to Blue Pill:
   for capture from SimHub "Incoming serial data" e.g. to plot,
   where reference tension measurements may be captured from a sim brake pedal load cell.
   
-This wants [**multi-byte control for SimHub Custom serial devices**](https://github.com/blekenbleu/Arduino-Blue-Pill/tree/main/blek2byte) 
- to handle that many variables,  
+This wants [**multi-byte control for SimHub Custom serial devices**](https://github.com/blekenbleu/Arduino-Blue-Pill/blob/main/8-bit.md) 
+ to handle that many variables.  
+
+### [Fake8](https://github.com/blekenbleu/Fake8) SimHub plugin drives [PWM_FullConfiguration](https://github.com/blekenbleu/Arduino-Blue-Pill/tree/main/PWM_FullConfiguration)  
+*16 Mar 2023* A derivative plugin will add test waveform by [Bresenham Line Generation](https://www.geeksforgeeks.org/bresenhams-line-generation-algorithm/), minimizing discontinuity:  
+- changes increasing amplitude will start in ramp-up section
+- changes decreasing amplitude start in ramp-down section
+- receipt of a control change from Custom Serial profile will cause `Parse()` to set a `Change` flag
+- `true == Change` will cause interval and slope recalculations at the next `DataUpdate()` invocation.
