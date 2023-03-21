@@ -24,6 +24,7 @@ namespace Fake8plugin
 	public class Fake8		// handle real Arduino USB COM por with 8-bit data
 	{
 		private static SerialPort Arduino;
+		private Test T;
 		static bool ongoing;						// Arduino port statu flag
 		static internal string Ini = "Fake7.";		// SimHub's property prefix for this plugin
 		private string[] Prop, b4;					// kill duplicated Custom Serial messages
@@ -66,7 +67,7 @@ namespace Fake8plugin
 			return false;
 		}
 
-		private void TryWrite(byte[] cmd, byte length)
+		internal void TryWrite(byte[] cmd, byte length)
 		{
 			try
 			{
@@ -75,9 +76,9 @@ namespace Fake8plugin
 			catch (Exception wex)
 			{
 				if (ongoing)
-					Info(msg = "Run():  " + wex.Message + " during Arduino.Write");
+					Info(msg = "TryWrite():  " + wex.Message);
 				if (ongoing = Recover(Arduino))
-					Info(msg = "Run():  Arduino connection restored");
+					Info(msg = "TryWrite():  Arduino connection restored");
 			} 
 		}
 
@@ -124,6 +125,7 @@ namespace Fake8plugin
 					TryWrite(cmd, 2);
 				}
 			}
+			T.Run();
 		}
 
 		/// <summary>
@@ -191,6 +193,7 @@ namespace Fake8plugin
 		/// </summary>
 		public void End(Fake7 F7)
 		{
+			T.End();
 			ongoing = false;
 			F7.Close(Arduino);
 		}
@@ -230,7 +233,8 @@ namespace Fake8plugin
 
 				ongoing = true;
 				Arduino.DataReceived += AndroidDataReceived;
-				F7.Fopen(Arduino, pill);
+				if(F7.Fopen(Arduino, pill))
+					(T = new Test()).Init(F7, this);
 			}
 			else F7.Sports(Fake7.Ini + "Custom Serial 'F8pill' missing from F8.ini");
 		}																			// Init()

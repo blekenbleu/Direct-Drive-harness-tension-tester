@@ -75,6 +75,8 @@ This wants [**multi-byte control for SimHub Custom serial devices**](https://git
 - Fake8.csproj
 - NCalcScripts/F8.ini  
 - Bresenham.md
+*Added*:  
+- Test.cs &nbsp *compiled, but not tested*  
 
 **Visual Studio:  project.assets.json not found**
 - cmd.exe shell:&nbsp;  `> dotnet restore`

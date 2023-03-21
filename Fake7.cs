@@ -20,7 +20,7 @@ namespace Fake8plugin
 	[PluginName("Fake8")]
 	public class Fake7 : IPlugin, IDataPlugin
 	{
-		private FakeSettings Settings;
+		internal FakeSettings Settings;
 		private Fake8 F8;
 		// configuration source file
 		internal static readonly string Ini = "DataCorePlugin.ExternalScript.Fake8";
@@ -190,7 +190,7 @@ namespace Fake8plugin
 		/// <summary>
 		/// Called by Init() to open a serial port
 		/// </summary>
-		internal void Fopen(SerialPort serial, string port)
+		internal bool Fopen(SerialPort serial, string port)
 		{	
 			try
 			{
@@ -204,11 +204,13 @@ namespace Fake8plugin
 				serial.WriteTimeout = 250;
 				serial.Open();
 				Info($"Open({port}): success!");
+				return true;
 			}
 			catch (Exception ex)
 			{
 				Sports($"Open({port}) failed.  " + ex.Message);
 			}
+			return false;
 		}
 
 		/// <summary>

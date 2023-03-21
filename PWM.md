@@ -27,8 +27,9 @@ these libraries have similar functions, simplifying porting among platforms:
 		from which it is derived.&nbsp;
 	  Marcello has a considerably updated (likely incompatible) version [also on GitHub](https://github.com/marcelloromani/Arduino-SimpleTimer).  
 
-FWIW, both **SimpleTimer** in [Arduino Library Manager](https://docs.arduino.cc/learn/starting-guide/software-libraries) seem totally different and incompatible;&nbsp; go figure..  
+FWIW, both **SimpleTimer** in [Arduino Library Manager](https://docs.arduino.cc/learn/starting-guide/software-libraries)
+ seem totally different and incompatible;&nbsp; go figure..  
 
-### 16 Mar 2023:&nbsp; [working STM32 hardware PWM](https://github.com/blekenbleu/Arduino-Blue-Pill/tree/main/PWM_FullConfiguration)  
-PWM_FullConfiguration drives Blue Pill LED, lacks predistortion controls,  
+### 16 Mar 2023:&nbsp; *working STM32 hardware* [PWM_FullConfiguration](https://github.com/blekenbleu/Arduino-Blue-Pill/tree/main/PWM_FullConfiguration) 
+drives Blue Pill LED, lacks predistortion controls, 
 should be ported to [Blue_ASCII_PWM_LED](https://github.com/blekenbleu/Arduino-Blue-Pill/tree/main/Blue_ASCII_PWM_LED)
