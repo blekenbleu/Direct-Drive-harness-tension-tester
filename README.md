@@ -66,13 +66,16 @@ This wants [**multi-byte control for SimHub Custom serial devices**](https://git
 - receipt of a control change from Custom Serial profile will cause `Parse()` to set a `Change` flag
 - `true == Change` will cause interval and slope recalculations at the next `DataUpdate()` invocation.
 
-### Fake8 installation
-*21 Mar 2023* copied source files:
+### Fake8 migration
+*20 Mar 2023*:&nbsp; begin scheming for [**Bresenham PWM modulation**](Bresenham.md)  
+*21 Mar 2023*:&nbsp; copied source files:
 - .gitignore
 - Fake7.cs
 - Fake8.cs
 - Fake8.csproj
 - NCalcScripts/F8.ini  
+- Bresenham.md
 
 **Visual Studio:  project.assets.json not found**
 - cmd.exe shell:&nbsp;  `> dotnet restore`
+- cannot debug builds until VS displays a .cs file
