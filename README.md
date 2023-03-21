@@ -65,3 +65,14 @@ This wants [**multi-byte control for SimHub Custom serial devices**](https://git
 - changes decreasing amplitude start in ramp-down section
 - receipt of a control change from Custom Serial profile will cause `Parse()` to set a `Change` flag
 - `true == Change` will cause interval and slope recalculations at the next `DataUpdate()` invocation.
+
+### Fake8 installation
+*21 Mar 2023* copied source files:
+- .gitignore
+- Fake7.cs
+- Fake8.cs
+- Fake8.csproj
+- NCalcScripts/F8.ini  
+
+**Visual Studio:  project.assets.json not found**
+- cmd.exe shell:&nbsp;  `> dotnet restore`
