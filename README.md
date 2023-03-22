@@ -75,9 +75,9 @@ This wants [**multi-byte control for SimHub Custom serial devices**](https://git
 - Fake8.csproj
 - NCalcScripts/F8.ini  
 - Bresenham.md  
-*Added*:  
+*New, to modulate Arduino PWM*:  
 - Test.cs &nbsp; *compiled, but not tested*  
 
 **Visual Studio:  project.assets.json not found**
 - cmd.exe shell:&nbsp;  `> dotnet restore`
-- cannot debug builds until VS displays a .cs file
+- VS 2019 will not debug builds until a .cs file is displayed.
