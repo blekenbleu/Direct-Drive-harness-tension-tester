@@ -22,6 +22,7 @@ namespace Fake8plugin
 	{
 		internal FakeSettings Settings;
 		private Fake8 F8;
+		private Test T;
 		// configuration source file
 		internal static readonly string Ini = "DataCorePlugin.ExternalScript.Fake8";
 		private string[] Label;
@@ -70,6 +71,7 @@ namespace Fake8plugin
 					if (f8[0] == Label[i])
 					{
 						Settings.Prop[i] = f8[1];
+						T.State(i);					// minimally discontinuous PWM modulation change
 						return true;
 					}
 				old = "Parse(): no match for " + parms;
@@ -267,7 +269,7 @@ namespace Fake8plugin
 				running = true;
 				CustomSerial.DataReceived += CustomDataReceived;
 				Fopen(CustomSerial, null_modem);
-				F8.Init(pluginManager, this);
+				T = F8.Init(pluginManager, this);
 			}
 		}																			// Init()
 	}

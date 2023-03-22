@@ -201,7 +201,7 @@ namespace Fake8plugin
 		/// <summary>
 		/// Called at SimHub start then after game changes
 		/// </summary>
-		public void Init(PluginManager pluginManager, Fake7 F7)
+				public Test Init(PluginManager pluginManager, Fake7 F7)
 		{
 			old = "old";
 			msg = "[waiting]";
@@ -209,6 +209,7 @@ namespace Fake8plugin
 			once = true;
 			Arduino = new SerialPort();
 			cmd = new byte[4];
+			T = new Test();
 
 // read properties and configure
 
@@ -234,9 +235,10 @@ namespace Fake8plugin
 				ongoing = true;
 				Arduino.DataReceived += AndroidDataReceived;
 				if(F7.Fopen(Arduino, pill))
-					(T = new Test()).Init(F7, this);
+					T.Init(F7, this);
 			}
 			else F7.Sports(Fake7.Ini + "Custom Serial 'F8pill' missing from F8.ini");
+			return T;
 		}																			// Init()
 	}
 }

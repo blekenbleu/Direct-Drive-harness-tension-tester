@@ -33,7 +33,7 @@ namespace Fake8plugin
 		/// </summary>
 		private static bool Info(string str)
 		{
-			SimHub.Logging.Current.Info("Test." + str);						// bool Info()
+			SimHub.Logging.Current.Info(Fake7.old = "Test." + str);						// bool Info()
 			return true;
 		}
 
@@ -42,63 +42,93 @@ namespace Fake8plugin
 		/// </summary>
 		internal bool State(byte index)
 		{
-			if (1 == index)	// f1: max %
+			bool ret = true;
+
+			if (1 == index) // f1: max %
 			{
-				if (cmd[1] < (max = Convert.ToByte(F7.Settings.Prop[index])))
+				max = Convert.ToByte(F7.Settings.Prop[index]);
+				if (min > max && min > 1)
+				{
+					Info($"State(min) reduced from {min} to 1");
+					min = 1;
+				}
+				if (max <= min)
+				{
+					Info($"State(max) increased from {max} to {min+1}");
+					max = min;
+					max++;
+				}
+				if (cmd[1] < max)
 					state = 1;
-				else if (cmd[1] > max)
+				else if (cmd[1] > min)
 					state = 3;
 			}
 			else if (2 == index && cmd[1] < (min = Convert.ToByte(F7.Settings.Prop[index])))
+			{
 				state = 1;
-			else if (5 == index && count > (period = UInt16.Parse(F7.Settings.Prop[index])))
-				state = 1;
+				if (min > max && min > 1)
+				{
+					Info($"State(min) reduced from {min} to 1");
+					min = 1;
+				}
+			}
+			else if (5 == index)
+			{
+				period = UInt16.Parse(F7.Settings.Prop[index]);
+				if (period < (rise = ((climb + hold + fall) << 1)))
+				{
+					Info($"State(period) increased from {period} to {rise}");
+					period = (ushort)rise;
+				}
+				if (count > period)
+					state = 1;
+			}
 			else if (6 == index && count > (climb = Convert.ToByte(F7.Settings.Prop[index])))
 			{
-				if (count < climb + (hold = Convert.ToByte(F7.Settings.Prop[7])))
+				if (count < climb + hold)
 					state = 2;
-				else if (count < climb + hold + (fall = Convert.ToByte(F7.Settings.Prop[8])))
+				else if (count < climb + hold + fall)
 					state = 3;
-				else if (count < (period = UInt16.Parse(F7.Settings.Prop[5])))
+				else if (count < period)
 					state = 4;
 				else state = 1;
 			}
-			else if (7 == index && count > (hold = Convert.ToByte(F7.Settings.Prop[index])))
+			else if (7 == index && count > climb + (hold = Convert.ToByte(F7.Settings.Prop[index])))
 			{
-				if (count < hold + (fall = Convert.ToByte(F7.Settings.Prop[8])))
+				if (count < climb + hold + fall)
 					state = 3;
-				else if (count < (period = UInt16.Parse(F7.Settings.Prop[5])))
+				else if (count < period)
 					state = 4;
 				else state = 1;
 			}
-			else if (8 == index && count > (fall = Convert.ToByte(F7.Settings.Prop[index])))
+			else if (8 == index && count > climb + hold + (fall = Convert.ToByte(F7.Settings.Prop[index])))
 			{
-				if (count < (period = UInt16.Parse(F7.Settings.Prop[5])))
+				if (count < period)
 					state = 4;
 				else state = 1;
 			}
-			else return false;
+			else ret = false;
 
 			if (1 == state)
 				count = 0;
-			if (period < (rise = ((climb + hold + fall) << 1)))
-			{
-				Info($"State(period) increased from {period} to {rise}");
-				period = (ushort)rise;
-			}
-			if (min > max && min > 1)
-			{
-				Info($"State(min) reduced from {min} to 1");
-				min = 1;
-			}
 
-			return true;
+			return ret;
 		}
 
 		internal bool Reset(byte index)
 		{
 			error = count = state = 0;
-			cmd[1] = Convert.ToByte(F7.Settings.Prop[2]);	// min
+			max = Convert.ToByte(F7.Settings.Prop[1]);
+			cmd[1] = min = Convert.ToByte(F7.Settings.Prop[2]);
+			period = UInt16.Parse(F7.Settings.Prop[5]);
+			climb = Convert.ToByte(F7.Settings.Prop[6]);
+			hold = Convert.ToByte(F7.Settings.Prop[7]);
+			fall = Convert.ToByte(F7.Settings.Prop[8]);
+			if (period < (rise = ((climb + hold + fall) << 1)))
+			{
+				Info($"Reset(period) increased from {period} to {rise}");
+				period = (ushort)rise;
+			}
 			return State(index);
 		}
 
@@ -108,7 +138,6 @@ namespace Fake8plugin
 		/// </summary>
 		internal void Run()
 		{
-
 			if (0 == state)
 				return;
 
