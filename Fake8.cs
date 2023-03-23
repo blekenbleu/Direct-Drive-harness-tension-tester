@@ -3,6 +3,7 @@ using SimHub.Plugins;
 using System;
 using System.IO;
 using System.IO.Ports;
+using System.Threading;
 using System.Timers;
 
 /* Tension test sliders
@@ -43,7 +44,11 @@ namespace Fake8plugin
 		static internal bool Recover(SerialPort port)
 		{
 			if (port.IsOpen)
+			{
+				if (old != msg)
+					Receiver(msg);	// inform Custom Serial of Arduino exception
 				return true;
+			}
 			else
 			{
 				try
@@ -159,7 +164,11 @@ namespace Fake8plugin
 			}
 			if ('\n' == last)	// Arduino messages may be fragmented, but end with `\n'
 				msg = old;
-			else msg += old;
+			else
+			{
+				msg += old;
+				old = msg;
+			}
 			last = old[old.Length - 1];
 		}
 
@@ -176,7 +185,9 @@ namespace Fake8plugin
 				{
 					string s = sp.ReadExisting();
 
-					Crcv(s);	// pass current instance to Receiver() delegate
+					if (0 < s.Length)
+						Crcv(s);	// pass current instance to Receiver() delegate
+					else Thread.Sleep(8);
 				}
 				catch (Exception rex)
 				{

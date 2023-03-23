@@ -81,3 +81,15 @@ This wants [**multi-byte control for SimHub Custom serial devices**](https://git
 **Visual Studio:  project.assets.json not found**
 - cmd.exe shell:&nbsp;  `> dotnet restore`
 - VS 2019 will not debug builds until a .cs file is displayed.
+
+#### *23 Mar 2023* "full function" plugin debugging
+- stepping thru code seems OK
+-  many Custom Serial setting changes get ignored while Test runs
+   - Custom Serial messages *eventually* get handled, but it may take minutes.
+   - unplugging Arduino USB posts error, then Custom Serial messages get handled
+   - added post Arduino I/O operation abort to Custom Serial...
+	  - post in `AndroidDataReceived()` exception hung SimHub in `while(ongoing) ReadExisting()` loop
+      - post in `Recover()`, during `DataUpdate()`, is OK...
+- **speculation**:&nbsp; extra (serial port receive) threads running in plugin confound SimHub
+  - adding 8msec Tread.Sleep in ReadExisting() loops did not help.
+  - alternative:  read once per invocation on main thread, buffer until message end characters...?

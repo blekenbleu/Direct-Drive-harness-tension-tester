@@ -95,7 +95,7 @@ namespace Fake8plugin
 		static internal string old;
 		static private void Fake7receiver(Fake7 I, string msg)
 		{
-			if (String.Empty == msg || (old.Length == msg.Length && old == msg))
+			if (old.Length == msg.Length && old == msg)
 				return;
 
 			old = msg;
@@ -119,7 +119,9 @@ namespace Fake8plugin
 				{
 					string s= sp.ReadExisting();
 
-					Crcv(I(), s);							// pass current instance to Fake7receiver() delegate
+					if (0 < s.Length)							// minimize delegations
+						Crcv(I(), s);							// pass current instance to Fake7receiver() delegate
+					else Thread.Sleep(8);
 				}
 				catch (Exception cre)
 				{
