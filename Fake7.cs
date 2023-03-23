@@ -87,6 +87,7 @@ namespace Fake8plugin
 		readonly CustDel Crcv = Fake7receiver;
 
 		private Fake7 I() { return this; }		// callback for current class instance
+
 		/// <summary>
 		/// Called by delegate from DataReceived method CustomDataReceived(),
 		/// which runs on a secondary thread;  should not directly access main thread variables
@@ -160,6 +161,21 @@ namespace Fake8plugin
 		/// <param name="data">Current game data, including current and previous data frame.</param>
 		public void DataUpdate(PluginManager pluginManager, ref GameData data)
 		{
+			if (running)
+			{
+				try
+				{
+					string s= CustomSerial.ReadExisting();
+
+					if (0 < s.Length)							// minimize delegations
+						Crcv(I(), s);							// pass current instance to Fake7receiver() delegate
+				}
+				catch (Exception cre)
+				{
+					Info(old = "CustomSerial.ReadExisting():  " + cre.Message);
+					running = false;										// recovery in Fake8.Fake8receiver()
+				}
+			}
 			F8.Run(pluginManager);	// property changes drive Arduino.Write()
 		}
 
@@ -269,7 +285,6 @@ namespace Fake8plugin
 			else
 			{
 				running = true;
-				CustomSerial.DataReceived += CustomDataReceived;
 				Fopen(CustomSerial, null_modem);
 				T = F8.Init(pluginManager, this);
 			}

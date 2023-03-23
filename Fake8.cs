@@ -30,7 +30,8 @@ namespace Fake8plugin
 		static internal string Ini = "Fake7.";		// SimHub's property prefix for this plugin
 		private string[] Prop, b4;					// kill duplicated Custom Serial messages
 		private byte[] cmd;							// 8-bit bytes to Arduino
-		static internal string msg;					// user feedback property
+		private int col;
+		static internal string msg;					// user feedback property:  Msg_Arduino
 
 		/// <summary>
 		/// wraps SimHub.Logging.Current.Info() with prefix
@@ -41,14 +42,10 @@ namespace Fake8plugin
 			return true;
 		}
 
-		static internal bool Recover(SerialPort port)
+		internal bool Recover(SerialPort port)
 		{
 			if (port.IsOpen)
-			{
-				if (old != msg)
-					Receiver(msg);	// inform Custom Serial of Arduino exception
 				return true;
-			}
 			else
 			{
 				try
@@ -80,10 +77,17 @@ namespace Fake8plugin
 			}
 			catch (Exception wex)
 			{
+				bool first = false;
+
 				if (ongoing)
+				{
 					Info(msg = "TryWrite():  " + wex.Message);
+					first = true;
+				}
 				if (ongoing = Recover(Arduino))
 					Info(msg = "TryWrite():  Arduino connection restored");
+				else if (first)
+					CustomWrite(msg + "\n");
 			} 
 		}
 
@@ -103,6 +107,29 @@ namespace Fake8plugin
 			}
 			once = true;
 			Recover(Fake7.CustomSerial);
+			if (ongoing = Recover(Arduino))
+			{
+				try
+				{
+					string s = Arduino.ReadExisting();
+					int l = s.Length;
+
+					if (0 < l)
+					{
+						col += l;
+						if (140 > col)
+							s = s.Substring(0, l - 1) + " ";
+						else col = 0;
+						CustomWrite(s);
+					}
+				}
+				catch (Exception rex)
+				{
+					Info(msg = "Arduino.ReadExisting():  " + rex.Message );
+					CustomWrite(msg + "\n");	// inform Custom Serial of Arduino exception
+					ongoing = false;		// recover in TryWrite();
+				}
+			}
 				
 			for (byte i = 0; i < Prop.Length; i++)
 			{
@@ -134,67 +161,20 @@ namespace Fake8plugin
 		}
 
 		/// <summary>
-		/// declare a delegate for Receiver()
+		/// Called by Run()
 		/// </summary>
-		private delegate void CustDel(string text);
-		readonly CustDel Crcv = Receiver;
-
-		/// <summary>
-		/// Called by delegate from DataReceived method AndroidDataReceived(),
-		/// which runs on a secondary thread from ThreadPool, so should not directly access non-static main thread variables
-		/// As a delegate, it must be static 
-		/// </summary>
-		static string old;
-		static char last;
-		static private void Receiver(string received)
+		internal void CustomWrite(string received)
 		{
-			if (String.Empty == received || (old.Length == received.Length && old == received))
-				return;
-
 			try
 			{
-				Fake7.CustomSerial.Write(old = received);
+				Fake7.CustomSerial.Write(received);
 			}
 			catch (Exception e)
 			{
 				if (Fake7.running)
-					Info(Fake7.old = "Custom Serial:  " + e.Message + $" during Fake7.CustomSerial.Write({received})");
+					Fake7.old = "Custom Serial:  " + e.Message + $" during Fake7.CustomSerial.Write({received})";
 				if (Fake7.running = Recover(Fake7.CustomSerial))
-					Info(Fake7.old = "Custom Serial connection recovered");
-			}
-			if ('\n' == last)	// Arduino messages may be fragmented, but end with `\n'
-				msg = old;
-			else
-			{
-				msg += old;
-				old = msg;
-			}
-			last = old[old.Length - 1];
-		}
-
-		/// <summary>
-		/// Arduino DataReceived method runs on a secondary thread from ThreadPool
-		/// calls Receiver() via delegate
-		/// </summary>
-		private void AndroidDataReceived(object sender, SerialDataReceivedEventArgs e)
-		{
-			SerialPort sp = (SerialPort)sender;
-			while (ongoing)
-			{
-				try
-				{
-					string s = sp.ReadExisting();
-
-					if (0 < s.Length)
-						Crcv(s);	// pass current instance to Receiver() delegate
-					else Thread.Sleep(8);
-				}
-				catch (Exception rex)
-				{
-					if (ongoing)
-						Info(msg = "AndroidDataReceived():  " + rex.Message );
-					ongoing = false;		// recover in TryWrite();
-				}
+					Fake7.old = "Custom Serial connection recovered";
 			}
 		}
 
@@ -212,12 +192,11 @@ namespace Fake8plugin
 		/// <summary>
 		/// Called at SimHub start then after game changes
 		/// </summary>
-				public Test Init(PluginManager pluginManager, Fake7 F7)
+		public Test Init(PluginManager pluginManager, Fake7 F7)
 		{
-			old = "old";
 			msg = "[waiting]";
-			last = '\n';
 			once = true;
+			col = 0;
 			Arduino = new SerialPort();
 			cmd = new byte[4];
 			T = new Test();
@@ -240,15 +219,12 @@ namespace Fake8plugin
 			else Info("Init():  missing " + Fake7.Ini + "parms");
 
 			string pill = pluginManager.GetPropertyValue(Fake7.Ini + "pill")?.ToString();
-			if (null != pill || 0 < pill.Length)
+			if (null != pill && 0 < pill.Length)
 			{													// launch serial port
-
-				ongoing = true;
-				Arduino.DataReceived += AndroidDataReceived;
-				if(F7.Fopen(Arduino, pill))
-					T.Init(F7, this);
+				ongoing = F7.Fopen(Arduino, pill);
+				T.Init(F7, this);
 			}
-			else F7.Sports(Fake7.Ini + "Custom Serial 'F8pill' missing from F8.ini");
+			else F7.Sports(Fake7.Ini + (msg = "Custom Serial 'F8pill' missing from F8.ini"));
 			return T;
 		}																			// Init()
 	}

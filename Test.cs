@@ -54,7 +54,8 @@ namespace Fake8plugin
 				}
 				if (max <= min)
 				{
-					Info($"State(max) increased from {max} to {min+1}");
+					Fake8.msg = $"State(max) increased from {max} to {min+1}";
+					F8.CustomWrite(Fake8.msg + "\n");
 					max = min;
 					max++;
 				}
@@ -77,7 +78,8 @@ namespace Fake8plugin
 				period = UInt16.Parse(F7.Settings.Prop[index]);
 				if (period < (rise = ((climb + hold + fall) << 1)))
 				{
-					Info($"State(period) increased from {period} to {rise}");
+					Fake8.msg = $"State(period) increased from {period} to {rise}";
+					F8.CustomWrite(Fake8.msg + "\n");
 					period = (ushort)rise;
 				}
 				if (count > period)
@@ -126,9 +128,10 @@ namespace Fake8plugin
 			fall = Convert.ToByte(F7.Settings.Prop[8]);
 			if (period < (rise = ((climb + hold + fall) << 1)))
 			{
-				Info($"Reset(period) increased from {period} to {rise}");
+				Info(Fake8.msg  = $"Reset(period) increased from {period} to {rise}");
 				period = (ushort)rise;
 			}
+			else Fake8.msg = $"Test.Reset({index}) complete.";
 			return State(index);
 		}
 
@@ -145,7 +148,7 @@ namespace Fake8plugin
 			if ( count >= period)
 			{
 				state = 1;
-				count = 0;
+				error = count = 0;
 			}
 			if (1 == state)
 			{
@@ -185,6 +188,7 @@ namespace Fake8plugin
 			}	
 			if (2 == state)
 			{
+				error = 0;
 				if (count > climb + hold)
 					state++;
 				else if (cmd[1] != max)
