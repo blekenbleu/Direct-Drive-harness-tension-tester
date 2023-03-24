@@ -21,7 +21,8 @@ namespace Fake8plugin
 	public class Test		// modulate PWM percent
 	{
 		byte state;								// 0=reset, 1=climb, 2=hold, 3=fall, 4=wait
-		byte climb, hold, fall, max, min;
+		ushort climb, hold, fall;
+		byte max, min;
 		byte[] cmd;								// cmd[0] is Arduino PWM command, cmd[1] is PWM value
 		ushort count, period, run;
 		int error, rise;
@@ -85,7 +86,7 @@ namespace Fake8plugin
 				if (count > period)
 					state = 1;
 			}
-			else if (6 == index && count > (climb = Convert.ToByte(F7.Settings.Prop[index])))
+			else if (6 == index && count > (climb = UInt16.Parse(F7.Settings.Prop[index])))
 			{
 				if (count < climb + hold)
 					state = 2;
@@ -95,7 +96,7 @@ namespace Fake8plugin
 					state = 4;
 				else state = 1;
 			}
-			else if (7 == index && count > climb + (hold = Convert.ToByte(F7.Settings.Prop[index])))
+			else if (7 == index && count > climb + (hold = UInt16.Parse(F7.Settings.Prop[index])))
 			{
 				if (count < climb + hold + fall)
 					state = 3;
@@ -103,7 +104,7 @@ namespace Fake8plugin
 					state = 4;
 				else state = 1;
 			}
-			else if (8 == index && count > climb + hold + (fall = Convert.ToByte(F7.Settings.Prop[index])))
+			else if (8 == index && count > climb + hold + (fall = UInt16.Parse(F7.Settings.Prop[index])))
 			{
 				if (count < period)
 					state = 4;
@@ -123,9 +124,9 @@ namespace Fake8plugin
 			max = Convert.ToByte(F7.Settings.Prop[1]);
 			cmd[1] = min = Convert.ToByte(F7.Settings.Prop[2]);
 			period = UInt16.Parse(F7.Settings.Prop[5]);
-			climb = Convert.ToByte(F7.Settings.Prop[6]);
-			hold = Convert.ToByte(F7.Settings.Prop[7]);
-			fall = Convert.ToByte(F7.Settings.Prop[8]);
+			climb = UInt16.Parse(F7.Settings.Prop[6]);
+			hold = UInt16.Parse(F7.Settings.Prop[7]);
+			fall = UInt16.Parse(F7.Settings.Prop[8]);
 			if (period < (rise = ((climb + hold + fall) << 1)))
 			{
 				Info(Fake8.msg  = $"Reset(period) increased from {period} to {rise}");

@@ -1,10 +1,10 @@
-# Direct Drive sim racing harness tension test rig
- An [Arduino sketch](https://github.com/blekenbleu/Arduino-Blue-Pill/tree/main/blek2byte) 
+# SimHub plugin for Direct Drive harness tension control
+ with [Arduino sketch](https://github.com/blekenbleu/Arduino-Blue-Pill/tree/main/blek2byte) 
  and [SimHub Custom Serial profile](https://raw.githubusercontent.com/blekenbleu/SimHub-profiles/main/Fake8.shsds) 
  for scooter motor [**PWM**](PWM.md) torque control:  
  ![](https://raw.githubusercontent.com/blekenbleu/Fake8/main/Fake8.png)  
- ...these will employ the [Fake8 SimHUb plugin](https://github.com/blekenbleu/Fake8) for sending 8-bit commands
- to the [Arduino sketch](https://github.com/blekenbleu/Arduino-Blue-Pill/tree/main/blek2byte).
+ ...these employ an evolved [Fake8 SimHUb plugin](https://github.com/blekenbleu/Fake8) to send 8-bit commands
+ to an [Arduino sketch](https://github.com/blekenbleu/Arduino-Blue-Pill/tree/main/blek2byte).
 
 Several Sim racing harness tensioners use either stepper motors or hobby/robot servo motors,  
 either choice being IMO suboptimal:
@@ -29,8 +29,9 @@ for use as [traction motors](https://en.wikipedia.org/wiki/Traction_motor),
 - [What range of PWM values is safe and useful](https://www.allaboutcircuits.com/textbook/semiconductors/chpt-11/pulse-width-modulation/)?
 - How responsively can tension (motor torque) slew?  
   Substantial changes will involve appreciable shaft rotation, generating back EMF.  
-- Are brief predistortion pulses wanted for more responsive torque application and release?
+- Is predistortion/[preemphasis](https://www.analog.com/en/technical-articles/an-introduction-to-preemphasis-and-equalization-in-maxim-gmsl-serdes-devices.html) wanted for more responsive torque application and release?
    - If so, how much and for how long?
+   - using [IIR](https://github.com/tttapa/Arduino-Filters) filter, [fuzzy logic](https://github.com/alvesoaj/eFLL) or [PID](https://github.com/imax9000/Arduino-PID-Library)?
 
 Testing will employ this waveform, sampled at SimHub 60Hz rate:  
 ![](test.png)  
@@ -47,7 +48,9 @@ Up to 5 signals to Blue Pill:
 - Testing sample values driving PWM %
 - PWM frequency &nbsp; ( ~ 20kHz?)
 - predistortion amplitude (% of sample value changes) to compensate slew rate limits:
-  ![](predistort.jpg)
+  ![](predistort.jpg)  
+
+  &nbsp; &nbsp; &nbsp; ![](https://www.analog.com/-/media/analog/en/landing-pages/technical-articles/an-introduction-to-preemphasis-and-equalization-in-maxim-gmsl-serdes-devices/5045fig02.gif)  
 - predistortion duration (Blue Pill Arduino loop() cycle count)  
   worst case, scooter motor may want brief negative predistortion to relax tension,  
   consuming both sides of an "H" PWM driver per motor:  
