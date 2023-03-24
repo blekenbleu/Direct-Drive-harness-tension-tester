@@ -20,10 +20,11 @@ namespace Fake8plugin
 {
 	public class Test		// modulate PWM percent
 	{
+		bool start;
 		byte state;								// 0=reset, 1=climb, 2=hold, 3=fall, 4=wait
-		ushort climb, hold, fall;
 		byte max, min;
-		byte[] cmd;								// cmd[0] is Arduino PWM command, cmd[1] is PWM value
+		byte[] cmd, buffer;								// cmd[0] is Arduino PWM command, cmd[1] is PWM value
+		ushort climb, hold, fall;
 		ushort count, period, run;
 		int error, rise;
 		Fake7 F7;
@@ -115,6 +116,12 @@ namespace Fake8plugin
 			if (1 == state)
 				count = 0;
 
+//	single cycle
+			count = (ushort)(climb + hold + fall);
+			start = true;
+			state = 4;
+			for (int i = 0; i < buffer.Length; i++)
+				buffer[i] = min;
 			return ret;
 		}
 
@@ -148,7 +155,13 @@ namespace Fake8plugin
 			count++;
 			if ( count >= period)
 			{
-				state = 1;
+				if (start)
+					state = 1;
+				else
+				{
+					state = 0;
+					return;
+				}	
 				error = count = 0;
 			}
 			if (1 == state)
@@ -156,6 +169,7 @@ namespace Fake8plugin
 				if (count > climb)
 					state++;
 				else {
+					start = false;
 					rise = max - cmd[1];
 					run = (ushort)(climb - count);
 					if (0 == run)
@@ -260,7 +274,9 @@ namespace Fake8plugin
 		/// </summary>
 		public void Init(Fake7 f7, Fake8 f8)
 		{
+			start = false;
 			cmd = new byte[] { 0x80, 0 };
+			buffer = new byte[8];
 			F7 = f7;
 			F8 = f8;
 			Reset(1);		// climb
