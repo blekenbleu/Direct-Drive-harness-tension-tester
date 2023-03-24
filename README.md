@@ -101,5 +101,6 @@ This wants [**multi-byte control for SimHub Custom serial devices**](https://git
 
 #### *24 Mar 2023* `single` branch
 For debugging, Test will execute a single extended cycle,
-- starting count at `climb+hold+fall`, continuing thru `period` and back `climb` and ending at the next `period`
+- starting count at `climb+hold+fall`, continuing thru `period` and `climb` and ending at the next `period`
 - this will e.g. simplify capturing results for gnuplot
+- prototyping preemphasis filtering will be faster and easier in Test class of the plugin than in Arduino.
