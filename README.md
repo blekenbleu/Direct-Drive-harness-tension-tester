@@ -98,3 +98,8 @@ This wants [**multi-byte control for SimHub Custom serial devices**](https://git
   - alternative:  read once per invocation on main thread, buffer until message end characters...?
 - **Moving `Arduino.ReadExisting()` to the `DataUpdate()` thread provokes `CustomSerial.Write()` timeouts**
 - also changing `CustomSerial.ReadExisting()` to that thread made both serial ports robust.
+
+#### *24 Mar 2023* `singe` branch
+For debugging, Test will execute a single extended cycle,
+- starting count at `climb+hold+fall`, continuing thru `period` and back `climb` and ending at the next `period`
+- this will e.g. simplify capturing results for gnuplot
