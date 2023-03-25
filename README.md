@@ -50,7 +50,7 @@ Up to 5 signals to Blue Pill:
 - predistortion amplitude (% of sample value changes) to compensate slew rate limits:
   ![](predistort.jpg)  
 
-  &nbsp; &nbsp; &nbsp; ![](https://www.analog.com/-/media/analog/en/landing-pages/technical-articles/an-introduction-to-preemphasis-and-equalization-in-maxim-gmsl-serdes-devices/5045fig02.gif)  
+  &nbsp; &nbsp; &nbsp; ![](preemphasis.gif)  
 - predistortion duration (Blue Pill Arduino loop() cycle count)  
   worst case, scooter motor may want brief negative predistortion to relax tension,  
   consuming both sides of an "H" PWM driver per motor:  
