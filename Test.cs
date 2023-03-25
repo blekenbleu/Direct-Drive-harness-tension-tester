@@ -21,9 +21,9 @@ namespace Fake8plugin
 	public class Test		// modulate PWM percent
 	{
 		bool start;
-		byte state;								// 0=reset, 1=climb, 2=hold, 3=fall, 4=wait
+		byte state;										// 0=reset, 1=climb, 2=hold, 3=fall, 4=wait
 		byte max, min;
-		byte[] cmd, buffer;								// cmd[0] is Arduino PWM command, cmd[1] is PWM value
+		byte[] cmd, buffer;								// cmd[0] is Arduino PWM command, cmd[1] is PWM 7-bit value
 		ushort climb, hold, fall;
 		ushort count, period, run;
 		int error, rise;
@@ -46,6 +46,19 @@ namespace Fake8plugin
 		{
 			bool ret = true;
 
+			if (0 == index)	// f0: PWM period: 1 = 500 Usec
+			{
+//				https://github.com/blekenbleu/Arduino-Blue-Pill/tree/main/PWM_FullConfiguration
+				uint value = UInt16.Parse(F7.Settings.Prop[index]);
+				byte[3] ard;
+
+				ard[2] = 127 & value;
+				value >>= 7;
+				ard[1] = (byte)(127 & value);
+				value >>= 7;
+				ard[0] = (byte)((7 << 5) | (3 & value));	// Ardiono case 7: 3-byte 16-bit PWM period
+				return F8.TryWrite(ard, 3);
+			}
 			if (1 == index) // f1: max %
 			{
 				max = Convert.ToByte(F7.Settings.Prop[index]);
@@ -275,7 +288,7 @@ namespace Fake8plugin
 		public void Init(Fake7 f7, Fake8 f8)
 		{
 			start = false;
-			cmd = new byte[] { 0x80, 0 };
+			cmd = new byte[] { (4<<5), 1 };		// Arduino case 4:  7-bit (PWM %)
 			buffer = new byte[8];
 			F7 = f7;
 			F8 = f8;

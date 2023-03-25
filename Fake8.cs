@@ -87,19 +87,46 @@ namespace Fake8plugin
 				}
 				if (ongoing = Recover(Arduino))
 				{
-					Info(msg = "TryWrite():  Arduino connection restored");
 					try
 					{
 						Arduino.Write(cmd, 0, length);
+						Info(msg = "TryWrite():  Arduino connection restored");
 						return true;
 					}
-					catch { /* fail */ }
+					catch
+					{
+						ongoing = false;
+						CustomWrite(msg + "\n");
+					}
 				}
 				else if (first)
 					CustomWrite(msg + "\n");
 			}
 			return false;
 		}					// TryWrite()
+
+		/// <summary>
+		/// Called by Run()
+		/// </summary>
+		internal void CustomWrite(string received)
+		{
+			try
+			{
+				Fake7.CustomSerial.Write(received);
+			}
+			catch (Exception e)
+			{
+				if (Fake7.running)
+					Fake7.old = "Custom Serial:  " + e.Message + $" during Write({received})";
+				if (Fake7.running = Recover(Fake7.CustomSerial))
+					try
+					{
+						Fake7.CustomSerial.Write(received);
+						Fake7.old = "Custom Serial connection recovered";
+					}
+					catch { Fake7.running = false; }
+			}
+		}
 
 		/// <summary>
 		// Called one time per game data update, contains all normalized game data,
@@ -115,6 +142,7 @@ namespace Fake8plugin
 				once = false;
 				return;
 			}
+
 			once = true;
 			Recover(Fake7.CustomSerial);
 			if (ongoing = Recover(Arduino))
@@ -135,57 +163,13 @@ namespace Fake8plugin
 				}
 				catch (Exception rex)
 				{
+					ongoing = false;			// recover in TryWrite();
 					Info(msg = "Arduino.ReadExisting():  " + rex.Message );
 					CustomWrite(msg + "\n");	// inform Custom Serial of Arduino exception
-					ongoing = false;		// recover in TryWrite();
 				}
 			}
 				
-			for (byte i = 0; i < Prop.Length; i++)
-			{
-				string prop = pluginManager.GetPropertyValue(Ini + Prop[i])?.ToString();
-
-				if (null == prop || 0 == prop.Length || (prop.Length == b4[i].Length && prop == b4[i]))
-					continue;
-				uint value = uint.Parse(prop);
-
-				b4[i] = prop;
-//							https://github.com/blekenbleu/Arduino-Blue-Pill/tree/main/PWM_FullConfiguration
-				if (0 == i)			// case 7: 16-bit PWM period
-				{
-					cmd[2] = (byte)(127 & value);
-					value >>= 7;
-					cmd[1] = (byte)(127 & value);
-					value >>= 7;
-					cmd[0] = (byte)((7 << 5) | (3 & value));
-					TryWrite(cmd, 3);
-				}
-				else if (1 == i) 	// case 4: 7-bit PWM %
-				{
-					cmd[1] = (byte)(127 & value);
-					cmd[0] = (byte)(4 << 5);
-					TryWrite(cmd, 2);
-				}
-			}
 			T.Run();
-		}
-
-		/// <summary>
-		/// Called by Run()
-		/// </summary>
-		internal void CustomWrite(string received)
-		{
-			try
-			{
-				Fake7.CustomSerial.Write(received);
-			}
-			catch (Exception e)
-			{
-				if (Fake7.running)
-					Fake7.old = "Custom Serial:  " + e.Message + $" during Write({received})";
-				if (Fake7.running = Recover(Fake7.CustomSerial))
-					Fake7.old = "Custom Serial connection recovered";
-			}
 		}
 
 		/// <summary>
