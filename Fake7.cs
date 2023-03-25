@@ -9,7 +9,7 @@ using System.Timers;
 namespace Fake8plugin
 {
 	// these must be public
-	public class FakeSettings // saved while plugin restarts
+	public class FakeSettings				 // saved while plugin restarts
 	{
 		public byte[] Value { get; set; } = { 0 };
 		public string[] Prop { get; set; } = { "","","","","","","","","","" };
@@ -26,7 +26,7 @@ namespace Fake8plugin
 		// configuration source file
 		internal static readonly string Ini = "DataCorePlugin.ExternalScript.Fake8";
 		private string[] Label;
-		static internal bool running;
+		internal static bool running;
 		internal static SerialPort CustomSerial;			// SimHub Custom Serial device via com0com
 
 		/// <summary>
@@ -70,9 +70,12 @@ namespace Fake8plugin
 				for (byte i = 0; i < Settings.Prop.Length; i++)
 					if (f8[0] == Label[i])
 					{
-						Settings.Prop[i] = f8[1];
-						T.State(i);					// minimally discontinuous PWM modulation change
-						return true;
+						if (f8[1] != Settings.Prop[i] || 0 == i)
+						{
+							Settings.Prop[i] = f8[1];
+							return T.State(i);					// minimally discontinuous state change
+						}
+						return false;							// ignore duplicates, except PWM period
 					}
 				old = "Parse(): no match for " + parms;
 			}
@@ -89,8 +92,7 @@ namespace Fake8plugin
 		private Fake7 I() { return this; }		// callback for current class instance
 
 		/// <summary>
-		/// Called by delegate from DataReceived method CustomDataReceived(),
-		/// which runs on a secondary thread;  should not directly access main thread variables
+		/// Called by delegate
 		/// As a delegate, it must be static and passed the class variables instance... Calls Parse()
 		/// </summary>
 		static internal string old;
@@ -105,44 +107,6 @@ namespace Fake8plugin
 			for (byte i = 0; i < parm.Length; i++)
 				if (0 < parm[i].Length)
 					I.Parse(parm[i]);
-		}
-
-		/// <summary>
-		/// SimHub Custom Serial DataReceived() (via com0com) runs on a secondary thread
-		/// calls Fake7receiver() via delegate
-		/// </summary>
-		private void CustomDataReceived(object sender, SerialDataReceivedEventArgs e)
-		{
-			SerialPort sp = (SerialPort)sender;
-			while (running)
-			{
-				try
-				{
-					string s= sp.ReadExisting();
-
-					if (0 < s.Length)							// minimize delegations
-						Crcv(I(), s);							// pass current instance to Fake7receiver() delegate
-					else Thread.Sleep(8);
-				}
-				catch (Exception cre)
-				{
-					Info(old = "CustomDataReceived():  " + cre.Message);
-					running = false;										// recovery in Fake8.Fake8receiver()
-				}
-			}
-		}
-
-		/// <summary>
-		/// Log string of known serial ports
-		/// </summary>
-		internal void Sports(string n)
-		{
-			string s = $"Open(): {n};  available serial ports:";
-
-			foreach (string p in SerialPort.GetPortNames())
-				s += "\n\t" + p;
-
-			Info(s);
 		}
 
 		/// <summary>
@@ -205,6 +169,19 @@ namespace Fake8plugin
 			this.SaveCommonSettings("GeneralSettings", Settings);
 			Close(CustomSerial);
 			F8.End(this);
+		}
+
+		/// <summary>
+		/// Log string of known serial ports
+		/// </summary>
+		internal void Sports(string n)
+		{
+			string s = $"Open(): {n};  available serial ports:";
+
+			foreach (string p in SerialPort.GetPortNames())
+				s += "\n\t" + p;
+
+			Info(s);
 		}
 
 		/// <summary>
@@ -284,8 +261,7 @@ namespace Fake8plugin
 				Sports("Custom Serial '" + Ini + "cust" + "' missing from F8.ini");
 			else
 			{
-				running = true;
-				Fopen(CustomSerial, null_modem);
+				running = Fopen(CustomSerial, null_modem);
 				T = F8.Init(pluginManager, this);
 			}
 		}																			// Init()
