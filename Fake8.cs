@@ -26,10 +26,10 @@ namespace Fake8plugin
 	{
 		private static SerialPort Arduino;
 		private Test T;
-		static bool ongoing;						// Arduino port statu flag
-		static internal string Ini = "Fake7.";		// SimHub's property prefix for this plugin
+		private Fake7 F7;
+		bool ongoing;						// Arduino port statu flag
+		static internal string Ini = "F7.";		// SimHub's property prefix for this plugin
 		private string[] Prop, b4;					// kill duplicated Custom Serial messages
-		private byte[] cmd;							// 8-bit bytes to Arduino
 		private int col;
 		static internal string msg;					// user feedback property:  Msg_Arduino
 
@@ -69,6 +69,38 @@ namespace Fake8plugin
 			return false;
 		}
 
+		/// <summary>
+		/// Called by Run(), TryWrite()
+		/// </summary>
+		internal bool CustomWrite(string received)
+		{
+			try
+			{
+				F7.CustomSerial.Write(received);
+				return true;
+			}
+			catch (Exception e)
+			{
+				if (F7.running)
+					F7.old = "Custom Serial:  " + e.Message + $" during Write({received})";
+				if (F7.running = Recover(F7.CustomSerial))
+					try
+					{
+						F7.CustomSerial.Write(received);
+						F7.old = "Custom Serial connection recovered";
+						return true;
+					}
+					catch { F7.running = false; }
+			}
+			return false;
+		}
+
+		internal void Newline()
+		{
+			if (0 < col && CustomWrite("\n"))
+				col = 0;
+		}
+
 		internal bool TryWrite(byte[] cmd, byte length)
 		{
 			try
@@ -106,34 +138,11 @@ namespace Fake8plugin
 		}					// TryWrite()
 
 		/// <summary>
-		/// Called by Run()
-		/// </summary>
-		internal void CustomWrite(string received)
-		{
-			try
-			{
-				Fake7.CustomSerial.Write(received);
-			}
-			catch (Exception e)
-			{
-				if (Fake7.running)
-					Fake7.old = "Custom Serial:  " + e.Message + $" during Write({received})";
-				if (Fake7.running = Recover(Fake7.CustomSerial))
-					try
-					{
-						Fake7.CustomSerial.Write(received);
-						Fake7.old = "Custom Serial connection recovered";
-					}
-					catch { Fake7.running = false; }
-			}
-		}
-
-		/// <summary>
 		// Called one time per game data update, contains all normalized game data,
 		/// Update run time
 		/// </summary>
 		bool once;											// avoid flooding log with duplicate messages
-		internal void Run(PluginManager pluginManager)
+		internal void Run()
 		{
 			if (null == Prop)
 			{
@@ -144,7 +153,7 @@ namespace Fake8plugin
 			}
 
 			once = true;
-			Recover(Fake7.CustomSerial);
+			Recover(F7.CustomSerial);
 			if (ongoing = Recover(Arduino))
 			{
 				try
@@ -186,18 +195,18 @@ namespace Fake8plugin
 		/// <summary>
 		/// Called at SimHub start then after game changes
 		/// </summary>
-		public Test Init(PluginManager pluginManager, Fake7 F7)
+		public Test Init(PluginManager pluginManager, Fake7 f7)
 		{
 			msg = "[waiting]";
 			once = true;
 			col = 0;
 			Arduino = new SerialPort();
-			cmd = new byte[4];
+			F7 = f7;
 			T = new Test();
 
 // read properties and configure
 
-			string parms = pluginManager.GetPropertyValue(Fake7.Ini + "parms")?.ToString();
+			string parms = pluginManager.GetPropertyValue(F7.Ini + "parms")?.ToString();
 
 			if (null != parms && 0 < parms.Length)
 			{
@@ -208,17 +217,17 @@ namespace Fake8plugin
 					for (byte i = 0; i < Prop.Length; i++)
 						b4[i] = "";
 				}
-				else Info($"Init():  {Fake7.Ini + "parms"}.Length {Prop.Length} < expected 6");
+				else Info($"Init():  {F7.Ini + "parms"}.Length {Prop.Length} < expected 6");
 			}
-			else Info("Init():  missing " + Fake7.Ini + "parms");
+			else Info("Init():  missing " + F7.Ini + "parms");
 
-			string pill = pluginManager.GetPropertyValue(Fake7.Ini + "pill")?.ToString();
+			string pill = pluginManager.GetPropertyValue(F7.Ini + "pill")?.ToString();
 			if (null != pill && 0 < pill.Length)
 			{													// launch serial port
 				ongoing = F7.Fopen(Arduino, pill);
 				T.Init(F7, this);
 			}
-			else F7.Sports(Fake7.Ini + (msg = "Custom Serial 'F8pill' missing from F8.ini"));
+			else F7.Sports(F7.Ini + (msg = "Custom Serial 'F8pill' missing from F8.ini"));
 			return T;
 		}																			// Init()
 	}

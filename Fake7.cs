@@ -9,7 +9,7 @@ using System.Timers;
 namespace Fake8plugin
 {
 	// these must be public
-	public class FakeSettings				 // saved while plugin restarts
+	public class FakeSettings				 		// saved while plugin restarts
 	{
 		public byte[] Value { get; set; } = { 0 };
 		public string[] Prop { get; set; } = { "","","","","","","","","","" };
@@ -20,21 +20,22 @@ namespace Fake8plugin
 	[PluginName("Fake8")]
 	public class Fake7 : IPlugin, IDataPlugin
 	{
-		internal FakeSettings Settings;
+		internal FakeSettings Settings;				// Test.Reset() and .State() uses
 		private Fake8 F8;
 		private Test T;
 		// configuration source file
-		internal static readonly string Ini = "DataCorePlugin.ExternalScript.Fake8";
+		internal readonly string Ini = "DataCorePlugin.ExternalScript.Fake8";
 		private string[] Label;
-		internal static bool running;
-		internal static SerialPort CustomSerial;			// SimHub Custom Serial device via com0com
+		internal bool running;						// Fake8.CustomWrite() uses
+		internal SerialPort CustomSerial;			// SimHub Custom Serial device via com0com;  Fake8.Recover() uses
+		internal string old;						// used in Test.Info(); must be static if used in a static method
 
 		/// <summary>
 		/// wraps SimHub.Logging.Current.Info() with prefix
 		/// </summary>
 		private static bool Info(string str)
 		{
-			SimHub.Logging.Current.Info("Fake7." + str);						// bool Info()
+			SimHub.Logging.Current.Info("Fake7." + str);
 			return true;
 		}
 
@@ -61,7 +62,7 @@ namespace Fake8plugin
 		/// <summary>
 		/// match Custom Serial names; save settings
 		/// </summary>
-		private bool Parse(string parms)
+		private void Parse(string parms)
 		{
 			string[] f8 = parms.Split('=');
 
@@ -73,40 +74,27 @@ namespace Fake8plugin
 						if (f8[1] != Settings.Prop[i] || 0 == i)
 						{
 							Settings.Prop[i] = f8[1];
-							return T.State(i);					// minimally discontinuous state change
+							F8.Newline();
+							T.State(i);							// minimally discontinuous state change
 						}
-						return false;							// ignore duplicates, except PWM period
+						return;									// ignore duplicates, except PWM period
 					}
 				old = "Parse(): no match for " + parms;
 			}
 			else old = $"Parse(): invalid parm '{parms}'";
-			return false;
 		}
 
 		/// <summary>
-		/// declare a delegate for Fake7receiver()
+		/// Called by DataUpdate()
+		/// Breaks down Custom Serial setting messages, calling Parse()
 		/// </summary>
-		private delegate void CustDel(Fake7 I, string text);
-		readonly CustDel Crcv = Fake7receiver;
-
-		private Fake7 I() { return this; }		// callback for current class instance
-
-		/// <summary>
-		/// Called by delegate
-		/// As a delegate, it must be static and passed the class variables instance... Calls Parse()
-		/// </summary>
-		static internal string old;
-		static private void Fake7receiver(Fake7 I, string msg)
+		private void Customize(string msg)
 		{
-			if (old.Length == msg.Length && old == msg)
-				return;
-
-			old = msg;
 			string[] parm = msg.Split(';');
 
 			for (byte i = 0; i < parm.Length; i++)
 				if (0 < parm[i].Length)
-					I.Parse(parm[i]);
+					Parse(parm[i]);
 		}
 
 		/// <summary>
@@ -131,16 +119,16 @@ namespace Fake8plugin
 				{
 					string s= CustomSerial.ReadExisting();
 
-					if (0 < s.Length)							// minimize delegations
-						Crcv(I(), s);							// pass current instance to Fake7receiver() delegate
+					if (0 < s.Length && old != s)
+						Customize(old = s);
 				}
 				catch (Exception cre)
 				{
 					Info(old = "CustomSerial.ReadExisting():  " + cre.Message);
-					running = false;										// recovery in Fake8.Fake8receiver()
+					running = false;							// recovery in Fake8.Fake8receiver()
 				}
 			}
-			F8.Run(pluginManager);	// property changes drive Arduino.Write()
+			F8.Run();											// property changes drive Arduino.Write()
 		}
 
 		/// <summary>

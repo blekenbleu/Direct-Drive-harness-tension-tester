@@ -27,15 +27,15 @@ namespace Fake8plugin
 		ushort climb, hold, fall;
 		ushort count, period, run;
 		int error, rise;
-		Fake7 F7;
 		Fake8 F8;
+		Fake7 F7;
 
 		/// <summary>
 		/// wraps SimHub.Logging.Current.Info() with prefix
 		/// </summary>
-		private static bool Info(string str)
+		private bool Info(string str)
 		{
-			SimHub.Logging.Current.Info(Fake7.old = "Test." + str);						// bool Info()
+			SimHub.Logging.Current.Info(F7.old = "Test." + str);						// bool Info()
 			return true;
 		}
 
@@ -50,9 +50,9 @@ namespace Fake8plugin
 			{
 //				https://github.com/blekenbleu/Arduino-Blue-Pill/tree/main/PWM_FullConfiguration
 				uint value = UInt16.Parse(F7.Settings.Prop[index]);
-				byte[3] ard;
+				byte[] ard = new byte[3];
 
-				ard[2] = 127 & value;
+				ard[2] = (byte)(127 & value);
 				value >>= 7;
 				ard[1] = (byte)(127 & value);
 				value >>= 7;
