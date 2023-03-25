@@ -69,11 +69,12 @@ namespace Fake8plugin
 			return false;
 		}
 
-		internal void TryWrite(byte[] cmd, byte length)
+		internal bool TryWrite(byte[] cmd, byte length)
 		{
 			try
 			{
 				Arduino.Write(cmd, 0, length);
+				return true;
 			}
 			catch (Exception wex)
 			{
@@ -85,11 +86,20 @@ namespace Fake8plugin
 					first = true;
 				}
 				if (ongoing = Recover(Arduino))
+				{
 					Info(msg = "TryWrite():  Arduino connection restored");
+					try
+					{
+						Arduino.Write(cmd, 0, length);
+						return true;
+					}
+					catch { /* fail */ }
+				}
 				else if (first)
 					CustomWrite(msg + "\n");
-			} 
-		}
+			}
+			return false;
+		}					// TryWrite()
 
 		/// <summary>
 		// Called one time per game data update, contains all normalized game data,
@@ -172,7 +182,7 @@ namespace Fake8plugin
 			catch (Exception e)
 			{
 				if (Fake7.running)
-					Fake7.old = "Custom Serial:  " + e.Message + $" during Fake7.CustomSerial.Write({received})";
+					Fake7.old = "Custom Serial:  " + e.Message + $" during Write({received})";
 				if (Fake7.running = Recover(Fake7.CustomSerial))
 					Fake7.old = "Custom Serial connection recovered";
 			}
