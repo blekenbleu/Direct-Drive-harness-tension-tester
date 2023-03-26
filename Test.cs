@@ -10,7 +10,7 @@ using System;
  ; f3:  predistortion amplitude: % of PWM change 0 - 64
  ; f4:  predistortion count (number of PWM cycles) 0 - 64
  ; f5:  Test period count (number of SimHub Run() invocations 60 - 600
- ; f6:  Test climb count 0 - 64
+ ; f6:  Test rise count 0 - 64
  ; f7:  Test hold count 0 - 64
  ; f8:  Test fall count 0 - 64
  ; f9:
@@ -21,12 +21,12 @@ namespace Fake8plugin
 	public class Test		// modulate PWM percent
 	{
 		bool start;
-		byte state;										// 0=reset, 1=climb, 2=hold, 3=fall, 4=wait
+		byte state;										// 0=reset, 1=rise, 2=hold, 3=fall, 4=wait
 		byte max, min;
 		byte[] cmd, buffer;								// cmd[0] is Arduino PWM command, cmd[1] is PWM 7-bit value
-		ushort climb, hold, fall;
-		ushort count, period, run;
-		int error, rise;
+		ushort rise, hold, fall;
+		ushort count, period;
+		int error, range;
 		Fake8 F8;
 		Fake7 F7;
 
@@ -74,6 +74,7 @@ namespace Fake8plugin
 					max = min;
 					max++;
 				}
+				range = max - min;					// think positive
 				if (cmd[1] < max)
 					state = 1;
 				else if (cmd[1] > min)
@@ -89,21 +90,24 @@ namespace Fake8plugin
 				}
 				if (cmd[1] < min)
 					state = 1;
+				range = max - min;					// think positive
 			}
 			else if (5 == index)
 			{
+				uint pulse = (rise + hold + fall) << 1;
+
 				period = UInt16.Parse(F7.Settings.Prop[index]);
-				if (period < (rise = ((climb + hold + fall) << 1)))
+				if (period < pulse)
 				{
-					Fake8.msg = $"State(period) increased from {period} to {rise}";
+					Fake8.msg = $"State(period) increased from {period} to {pulse}";
 					F8.CustomWrite(Fake8.msg + "\n");
-					period = (ushort)rise;
+					period = (ushort)pulse;
 				}
 				if (count > period)
 					state = 1;
 			}
 			else if (6 == index)
-			 	climb = UInt16.Parse(F7.Settings.Prop[index]);
+			 	rise = UInt16.Parse(F7.Settings.Prop[index]);
 			else if (7 == index)
 			 	hold = UInt16.Parse(F7.Settings.Prop[index]);
 			else if (8 == index)
@@ -113,9 +117,9 @@ namespace Fake8plugin
 			// for looping
 			if (ret)
 			{
-				if (count < climb + hold)
+				if (count < rise + hold)
 					state = 2;
-				else if (count < climb + hold + fall)
+				else if (count < rise + hold + fall)
 					state = 3;
 				else if (count < period)
 					state = 4;
@@ -145,21 +149,22 @@ namespace Fake8plugin
 			max = Convert.ToByte(F7.Settings.Prop[1]);
 			min = Convert.ToByte(F7.Settings.Prop[2]);
 			period = UInt16.Parse(F7.Settings.Prop[5]);
-			climb = UInt16.Parse(F7.Settings.Prop[6]);
+			rise = UInt16.Parse(F7.Settings.Prop[6]);
 			hold = UInt16.Parse(F7.Settings.Prop[7]);
 			fall = UInt16.Parse(F7.Settings.Prop[8]);
-			if (period < (rise = ((climb + hold + fall) << 1)))
+			if (period < (range = ((rise + hold + fall) << 1)))
 			{
-				Info(Fake8.msg  = $"Reset(period) increased from {period} to {rise}");
-				period = (ushort)rise;
+				Info(Fake8.msg  = $"Reset(period) increased from {period} to {range}");
+				period = (ushort)range;
 			}
 			else Fake8.msg = $"Test.Reset({index}) complete.";
+			range = max - min;
 			return State(index);
 		}
 
 		/// <summary>
 		/// Test state machine; constant max, min in states 2, 4
-		/// Bresenham climb and fall in states 1 and 3
+		/// Bresenham rise and fall in states 1 and 3
 		/// </summary>
 		internal void Run()
 		{
@@ -175,37 +180,35 @@ namespace Fake8plugin
 					return;
 				}	
 				state = 1;
-				rise = max - min;
-				run = climb;
 				error = count = 0;
 			}
 			if (1 == state)
 			{
-				if (count > climb)
+				if (count > rise)
 					state++;
 				else {
 					start = false;
-					if (0 == run)
+					if (0 == rise)
 						cmd[1] = max;
-					else if (rise > run)
+					else if (range > rise)
 					{
-						int dy = error + rise;
+						int dy = error + range;
 
-						error = dy % run;
-						dy /= run;
-						if (rise <= (error << 1))
+						error = dy % rise;
+						dy /= rise;
+						if (range <= (error << 1))
 						{
-							error -= run;
+							error -= rise;
 							dy++;
 						}
 						cmd[1] += (byte)dy;		
 					}
-					else // rise <= run
+					else // range <= rise
 					{
-						error += rise;
-						if (run > (error << 1))
+						error += range;
+						if (rise > (error << 1))
 							return;			// no increment this time
-						error -= run;
+						error -= rise;
 						cmd[1]++;
 					}
 					F8.TryWrite(cmd, 2);
@@ -215,12 +218,8 @@ namespace Fake8plugin
 			if (2 == state)
 			{
 				error = 0;
-				if (count > climb + hold)
-				{
+				if (count > rise + hold)
 					state++;
-					rise = max - min;					// think positive
-					run = fall;
-				}
 				else if (cmd[1] != max)
 				{
 					cmd[1] = max;
@@ -230,31 +229,31 @@ namespace Fake8plugin
 			}	
 			if (3 == state)
 			{
-				if (count > climb + hold + fall)
+				if (count > rise + hold + fall)
 					state++;
 				else
 				{
-					if (0 == run)
+					if (0 == fall)
 						cmd[1] = min;
-					else if (rise > run)
+					else if (range > fall)
 					{
-						int dy = error + rise;
+						int dy = error + range;
 
-						error = dy % run;
-						dy /= run;
-						if (rise <= (error << 1))
+						error = dy % fall;
+						dy /= fall;
+						if (range <= (error << 1))
 						{
-							error -= run;
+							error -= fall;
 							dy++;
 						}
 						cmd[1] -= (byte)dy;		
 					}
-					else								// rise <= run
+					else								// range <= fall
 					{
-						error += rise;
-						if (run > (error << 1))
+						error += range;
+						if (fall > (error << 1))
 							return;			// no decrement this time
-						error -= run;
+						error -= fall;
 						cmd[1]--;
 					}
 					F8.TryWrite(cmd, 2);
@@ -290,7 +289,7 @@ namespace Fake8plugin
 			buffer = new byte[8];
 			F7 = f7;
 			F8 = f8;
-			Reset(1);		// climb
+			Reset(1);		// rise
 		}																	// Init()
 	}
 }
