@@ -31,7 +31,7 @@ namespace Fake8plugin
 		Fake7 F7;
 
 		/// <summary>
-		/// wraps SimHub.Logging.Current.Info() with prefix
+		/// SimHub.Logging.Current.Info() with prefix
 		/// </summary>
 		private bool Info(string str)
 		{
@@ -40,15 +40,15 @@ namespace Fake8plugin
 		}
 
 		/// <summary>
-		/// convert Settings from strings; prepare Run() state machine
+		/// Custom Serial settings from strings; prepare Run() state machine;  update Arduino PWM
+		/// https://github.com/blekenbleu/Arduino-Blue-Pill/tree/main/PWM_FullConfiguration
 		/// </summary>
 		internal bool State(byte index)
 		{
 			bool ret = true;
 
-			if (0 == index)	// f0: PWM period: 1 = 500 Usec
+			if (0 == index)									// f0: PWM period: 1 = 500 Usec
 			{
-//				https://github.com/blekenbleu/Arduino-Blue-Pill/tree/main/PWM_FullConfiguration
 				uint value = UInt16.Parse(F7.Settings.Prop[index]);
 				byte[] ard = new byte[3];
 
@@ -59,7 +59,7 @@ namespace Fake8plugin
 				ard[0] = (byte)((7 << 5) | (3 & value));	// Ardiono case 7: 3-byte 16-bit PWM period
 				return F8.TryWrite(ard, 3);
 			}
-			if (1 == index) // f1: max %
+			if (1 == index)									 // f1: max PWM %
 			{
 				max = Convert.ToByte(F7.Settings.Prop[index]);
 				if (min > max && min > 1)
@@ -79,14 +79,16 @@ namespace Fake8plugin
 				else if (cmd[1] > min)
 					state = 3;
 			}
-			else if (2 == index && cmd[1] < (min = Convert.ToByte(F7.Settings.Prop[index])))
+			else if (2 == index)
 			{
-				state = 1;
+				min = Convert.ToByte(F7.Settings.Prop[index]);
 				if (min > max && min > 1)
 				{
 					Info($"State(min) reduced from {min} to 1");
 					min = 1;
 				}
+				if (cmd[1] < min)
+					state = 1;
 			}
 			else if (5 == index)
 			{
@@ -100,7 +102,16 @@ namespace Fake8plugin
 				if (count > period)
 					state = 1;
 			}
-			else if (6 == index && count > (climb = UInt16.Parse(F7.Settings.Prop[index])))
+			else if (6 == index)
+			 	climb = UInt16.Parse(F7.Settings.Prop[index]);
+			else if (7 == index)
+			 	hold = UInt16.Parse(F7.Settings.Prop[index]);
+			else if (8 == index)
+			 	fall = UInt16.Parse(F7.Settings.Prop[index]);
+			else ret = false;
+/*
+			// for looping
+			if (ret)
 			{
 				if (count < climb + hold)
 					state = 2;
@@ -110,39 +121,29 @@ namespace Fake8plugin
 					state = 4;
 				else state = 1;
 			}
-			else if (7 == index && count > climb + (hold = UInt16.Parse(F7.Settings.Prop[index])))
-			{
-				if (count < climb + hold + fall)
-					state = 3;
-				else if (count < period)
-					state = 4;
-				else state = 1;
-			}
-			else if (8 == index && count > climb + hold + (fall = UInt16.Parse(F7.Settings.Prop[index])))
-			{
-				if (count < period)
-					state = 4;
-				else state = 1;
-			}
-			else ret = false;
 
 			if (1 == state)
 				count = 0;
+ */
 
-//	single cycle
+//	single cycle, instead of looping
+
 			count = (ushort)(climb + hold + fall);
 			start = true;
 			state = 4;
-			for (int i = 0; i < buffer.Length; i++)
+			for (int i = 0; i < buffer.Length; i++)		// initialize for IIR
 				buffer[i] = min;
 			return ret;
-		}
+		}												// State()
 
+		/// <summary>
+		/// [re]initialize state machine settings and restart
+		/// </summary>
 		internal bool Reset(byte index)
 		{
 			error = count = state = 0;
 			max = Convert.ToByte(F7.Settings.Prop[1]);
-			cmd[1] = min = Convert.ToByte(F7.Settings.Prop[2]);
+			min = Convert.ToByte(F7.Settings.Prop[2]);
 			period = UInt16.Parse(F7.Settings.Prop[5]);
 			climb = UInt16.Parse(F7.Settings.Prop[6]);
 			hold = UInt16.Parse(F7.Settings.Prop[7]);
@@ -183,8 +184,8 @@ namespace Fake8plugin
 					state++;
 				else {
 					start = false;
-					rise = max - cmd[1];
-					run = (ushort)(climb - count);
+					rise = max - min;
+					run = (ushort)climb;
 					if (0 == run)
 						cmd[1] = max;
 					else if (rise > run)
@@ -195,19 +196,17 @@ namespace Fake8plugin
 						dy /= run;
 						if (rise <= (error << 1))
 						{
-							error -= rise;
+							error -= run;
 							dy++;
 						}
 						cmd[1] += (byte)dy;		
 					}
 					else // rise <= run
 					{
-						if (Math.Abs(error + rise) < Math.Abs(run - (error + rise)))
-						{
-							error += rise;
+						error += rise;
+						if (run > (error << 1))
 							return;			// no increment this time
-						}
-						error = run - (error + rise);
+						error -= run;
 						cmd[1]++;
 					}
 					F8.TryWrite(cmd, 2);
@@ -232,8 +231,8 @@ namespace Fake8plugin
 					state++;
 				else
 				{
-					rise = cmd[1] - min;					// think positive
-					run = (ushort)(fall - count);
+					rise = max - min;					// think positive
+					run = (ushort)fall;
 					if (0 == run)
 						cmd[1] = min;
 					else if (rise > run)
@@ -244,19 +243,17 @@ namespace Fake8plugin
 						dy /= run;
 						if (rise <= (error << 1))
 						{
-							error -= rise;
+							error -= run;
 							dy++;
 						}
 						cmd[1] -= (byte)dy;		
 					}
 					else								// rise <= run
 					{
-						if (Math.Abs(error + rise) < Math.Abs(run - (error + rise)))
-						{
-							error += rise;
-							return;			// no increment this time
-						}
-						error = run - (error + rise);
+						error += rise;
+						if (run > (error << 1))
+							return;			// no decrement this time
+						error -= run;
 						cmd[1]--;
 					}
 					F8.TryWrite(cmd, 2);
