@@ -94,7 +94,7 @@ namespace Fake8plugin
 			}
 			else if (5 == index)
 			{
-				uint pulse = (rise + hold + fall) << 1;
+				int pulse = (rise + hold + fall) << 1;
 
 				period = UInt16.Parse(F7.Settings.Prop[index]);
 				if (period < pulse)
