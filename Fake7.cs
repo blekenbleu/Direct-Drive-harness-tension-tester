@@ -214,7 +214,7 @@ namespace Fake8plugin
 
 			Settings = this.ReadCommonSettings<FakeSettings>("GeneralSettings", () => new FakeSettings());
 
-			Info($"Init().InitCount:  {++Settings.Value[0]}; Settings.Length = {Settings.Prop.Length}");
+			Info($"Init().InitCount = {++Settings.Value[0]};  Settings.Length = {Settings.Prop.Length}");
 			if (10 > Settings.Prop.Length)
 				Settings = new FakeSettings();
 			Label = new string[Settings.Prop.Length];
