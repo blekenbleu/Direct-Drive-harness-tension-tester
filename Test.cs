@@ -128,7 +128,7 @@ namespace Fake8plugin
 
 //	single cycle, instead of looping
 
-			count = (ushort)(climb + hold + fall);
+			count = (ushort)(period - fall);
 			start = true;
 			state = 4;
 			for (int i = 0; i < buffer.Length; i++)		// initialize for IIR
@@ -169,13 +169,14 @@ namespace Fake8plugin
 			count++;
 			if ( count >= period)
 			{
-				if (start)
-					state = 1;
-				else
+				if (!start)
 				{
 					state = 0;
 					return;
 				}	
+				state = 1;
+				rise = max - min;
+				run = climb;
 				error = count = 0;
 			}
 			if (1 == state)
@@ -184,8 +185,6 @@ namespace Fake8plugin
 					state++;
 				else {
 					start = false;
-					rise = max - min;
-					run = (ushort)climb;
 					if (0 == run)
 						cmd[1] = max;
 					else if (rise > run)
@@ -217,7 +216,11 @@ namespace Fake8plugin
 			{
 				error = 0;
 				if (count > climb + hold)
+				{
 					state++;
+					rise = max - min;					// think positive
+					run = fall;
+				}
 				else if (cmd[1] != max)
 				{
 					cmd[1] = max;
@@ -231,8 +234,6 @@ namespace Fake8plugin
 					state++;
 				else
 				{
-					rise = max - min;					// think positive
-					run = (ushort)fall;
 					if (0 == run)
 						cmd[1] = min;
 					else if (rise > run)
