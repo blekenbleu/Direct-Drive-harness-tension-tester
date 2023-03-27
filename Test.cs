@@ -190,26 +190,18 @@ namespace Fake8plugin
 					start = false;
 					if (0 == rise)
 						cmd[1] = max;
-					else if (range > rise)
+					else
 					{
 						int dy = error + range;
 
 						error = dy % rise;
 						dy /= rise;
-						if (range <= (error << 1))
+						if (range < (error << 1))
 						{
 							error -= rise;
 							dy++;
 						}
 						cmd[1] += (byte)dy;		
-					}
-					else // range <= rise
-					{
-						error += range;
-						if (rise > (error << 1))
-							return;			// no increment this time
-						error -= rise;
-						cmd[1]++;
 					}
 					F8.TryWrite(cmd, 2);
 					return;
@@ -235,26 +227,18 @@ namespace Fake8plugin
 				{
 					if (0 == fall)
 						cmd[1] = min;
-					else if (range > fall)
+					else
 					{
 						int dy = error + range;
 
 						error = dy % fall;
 						dy /= fall;
-						if (range <= (error << 1))
+						if (range < (error << 1))
 						{
 							error -= fall;
 							dy++;
 						}
 						cmd[1] -= (byte)dy;		
-					}
-					else								// range <= fall
-					{
-						error += range;
-						if (fall > (error << 1))
-							return;			// no decrement this time
-						error -= fall;
-						cmd[1]--;
 					}
 					F8.TryWrite(cmd, 2);
 					return;

@@ -30,7 +30,7 @@ for (X = X_start; X <= X_end; X++)
 
     error = dy % run;		// remainder after integer division
     dy /= run;			// integer division for full increments
-    if (rise <= (error << 1))
+    if (rise < (error << 1))
     {
         error -= run;		// more than half-way to next increment
         dy++;
@@ -40,10 +40,11 @@ for (X = X_start; X <= X_end; X++)
   else // rise <= run
   {
     error += rise;
-    if (run > (error << 1))	// error more than half way to next full step?
-        return;         	// no increment this time
-    error -= run;
-    Y++;			// replace with `Y--;` for Y_end < Y_start
+    if (run < (error << 1))	// error more than half way to next full step?
+	{
+      error -= run;
+      Y++;			// replace with `Y--;` for Y_end < Y_start
+	{
   }
 }
 ```
