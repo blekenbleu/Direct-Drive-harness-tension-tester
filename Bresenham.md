@@ -24,8 +24,6 @@ int error = 0, rise = abs(Y_end - Y_start), run = X_end - X_start;
 
 for (X = X_start; X <= X_end; X++)
 {
-  if (rise > run)
-  {
     int dy = error + rise;	// change in Y substeps
 
     error = dy % run;		// remainder after integer division
@@ -36,15 +34,5 @@ for (X = X_start; X <= X_end; X++)
         dy++;
     }
     Y += dy;			// replace with `Y -= dy;` for Y_end < Y_start
-  }
-  else // rise <= run
-  {
-    error += rise;
-    if (run < (error << 1))	// error more than half way to next full step?
-	{
-      error -= run;
-      Y++;			// replace with `Y--;` for Y_end < Y_start
-	{
-  }
 }
 ```
