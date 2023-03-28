@@ -12,7 +12,7 @@ namespace Fake8plugin
 	public class FakeSettings				 		// saved while plugin restarts
 	{
 		public byte[] Value { get; set; } = { 0 };
-		public string[] Prop { get; set; } = { "","","","","","","","","","" };
+		public string[] Prop { get; set; } = { "","","","","","","","","","","" };
 	}
 
 	[PluginDescription("fake serial device plugin to SimHub Custom Serial via com0com null modem")]
@@ -47,16 +47,17 @@ namespace Fake8plugin
 			this.AttachDelegate("Msg_Custom",		() => old);
 			this.AttachDelegate("Msg_Arduino",		() => Fake8.msg);
 			this.AttachDelegate("InitCount",		() => Settings.Value[0]);
-			this.AttachDelegate(Label[0],			() => Settings.Prop[0]);
-			this.AttachDelegate(Label[1],			() => Settings.Prop[1]);
-			this.AttachDelegate(Label[2],			() => Settings.Prop[2]);
-			this.AttachDelegate(Label[3],			() => Settings.Prop[3]);
-			this.AttachDelegate(Label[4],			() => Settings.Prop[4]);
-			this.AttachDelegate(Label[5],			() => Settings.Prop[5]);
-			this.AttachDelegate(Label[6],			() => Settings.Prop[6]);
-			this.AttachDelegate(Label[7],			() => Settings.Prop[7]);
-			this.AttachDelegate(Label[8],			() => Settings.Prop[8]);
-			this.AttachDelegate(Label[9],			() => Settings.Prop[9]);
+			this.AttachDelegate(Label[0],			() => Settings.Prop[0]);	// f0: PWM period usec/50	1  - 10000
+			this.AttachDelegate(Label[1],			() => Settings.Prop[1]);	// f1: PWM max %			1 - 100
+			this.AttachDelegate(Label[2],			() => Settings.Prop[2]);	// f2: PWM min %			0 - 10
+			this.AttachDelegate(Label[3],			() => Settings.Prop[3]);	// f3: high-pass range		1 - 64	 
+			this.AttachDelegate(Label[4],			() => Settings.Prop[4]);	// f4: high-pass damping	0 - 255
+			this.AttachDelegate(Label[5],			() => Settings.Prop[5]);	// f5: test period			60 - 600
+			this.AttachDelegate(Label[6],			() => Settings.Prop[6]);	// f6: test rise			0 - 64
+			this.AttachDelegate(Label[7],			() => Settings.Prop[7]);	// f7: test hold			0 - 64
+			this.AttachDelegate(Label[8],			() => Settings.Prop[8]);	// f8: test fall			0 - 64
+			this.AttachDelegate(Label[9],			() => Settings.Prop[9]);	// f9: verbosity 0,1,2 = off,hex,integer
+			this.AttachDelegate(Label[10],			() => Settings.Prop[10]);	// fa: high-pass attenuation 0 - 255
 		}
 
 		/// <summary>
@@ -215,7 +216,7 @@ namespace Fake8plugin
 			Settings = this.ReadCommonSettings<FakeSettings>("GeneralSettings", () => new FakeSettings());
 
 			Info($"Init().InitCount = {++Settings.Value[0]};  Settings.Length = {Settings.Prop.Length}");
-			if (10 > Settings.Prop.Length)
+			if (11 > Settings.Prop.Length)
 				Settings = new FakeSettings();
 			Label = new string[Settings.Prop.Length];
 

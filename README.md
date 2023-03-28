@@ -106,3 +106,8 @@ For debugging, Test will execute a single extended cycle,
 - starting count at `climb+hold+fall`, continuing thru `period` and `climb` and ending at the next `period`
 - this will e.g. simplify capturing results for gnuplot
 - prototyping preemphasis filtering will be faster and easier in Test class of the plugin than in Arduino.
+
+#### *28 Mar 2023* [IIR high-pass filter](high-pass.md)
+- two controls (amplitude, time constant) by 3 sliders:&nbsp; rational values `<= 1`.
+	- one for positive integer numerator
+	- one for each denominator non-negative integer added to numerator
