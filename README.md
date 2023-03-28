@@ -1,3 +1,5 @@
+[*other content*](content.md)  
+
 # SimHub plugin for Direct Drive harness tension control
  with [Arduino sketch](https://github.com/blekenbleu/Arduino-Blue-Pill/tree/main/blek2byte) 
  and [SimHub Custom Serial profile](https://raw.githubusercontent.com/blekenbleu/SimHub-profiles/main/Fake8.shsds) 
