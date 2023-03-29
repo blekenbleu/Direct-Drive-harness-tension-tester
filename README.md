@@ -1,8 +1,8 @@
 [*other content*](content.md)  
 
 # SimHub plugin for Direct Drive harness tension control
- with [Arduino sketch](https://github.com/blekenbleu/Arduino-Blue-Pill/tree/main/blek2byte) 
- and [SimHub Custom Serial profile](https://raw.githubusercontent.com/blekenbleu/SimHub-profiles/main/Fake8.shsds) 
+ with [Arduino sketch](https://github.com/blekenbleu/Arduino-Blue-Pill/tree/main/PWM_FullConfiguration)
+ and [SimHub Custom Serial profile](https://raw.githubusercontent.com/blekenbleu/SimHub-profiles/main/highpass.shsds) 
  for scooter motor [**PWM**](PWM.md) torque control:  
  ![](https://raw.githubusercontent.com/blekenbleu/Fake8/main/Fake8.png)  
  ...these employ an evolved [Fake8 SimHUb plugin](https://github.com/blekenbleu/Fake8) to send 8-bit commands
@@ -23,9 +23,11 @@ seemingly deliver appropriate torque for direct drive harness tensioning, [as di
 ... driven by [BTS7960 43A Motor Drivers](https://electropeak.com/learn/interfacing-bts7960-43a-high-power-motor-driver-module-with-arduino/):  
 ![](https://electropeak.com/learn/wp-content/uploads/2021/01/BTS7960-43A-Driver-Module.jpg)  
 
-Since scooter motors are [not designed](https://support.electricscooterparts.com/support/discussions/topics/1000087804)
+Since scooter motors are [**NOT** designed](https://support.electricscooterparts.com/support/discussions/topics/1000087804)
 for use as [traction motors](https://en.wikipedia.org/wiki/Traction_motor),  
 ![](https://s3.amazonaws.com/cdn.freshdesk.com/data/helpdesk/attachments/production/1061847567/original/ZBdjpUecHVhGhRT2PKtmCvsTbPvkehl3zg.png)  
+ &nbsp; &nbsp; &nbsp; *(data for 350W motor;&nbsp; rescale for 250W (5/7))*  
+
 ... some information is lacking to use mostly stalled:
 - What PWM frequency minimizes coil whine while not compromising torque control?
 - [What range of PWM values is safe and useful](https://www.allaboutcircuits.com/textbook/semiconductors/chpt-11/pulse-width-modulation/)?

@@ -22,10 +22,10 @@ namespace Fake8plugin
 	{
 		bool start;
 		byte state;										// 0=reset, 1=rise, 2=hold, 3=fall, 4=wait
-		byte max, min;
+		byte max, min, verbosity;
 		byte[] cmd, buffer;								// cmd[0] is Arduino PWM command, cmd[1] is PWM 7-bit value
 		ushort rise, hold, fall;
-		ushort count, period;
+		ushort count, period, numerator, damping, attenuation;
 		int error, range;
 		Fake8 F8;
 		Fake7 F7;
@@ -49,7 +49,7 @@ namespace Fake8plugin
 
 			if (0 == index)									// f0: PWM period: 1 = 500 Usec
 			{
-				uint value = UInt16.Parse(F7.Settings.Prop[index]);
+				uint value = Default(index);
 				byte[] ard = new byte[3];
 
 				ard[2] = (byte)(127 & value);
@@ -61,7 +61,7 @@ namespace Fake8plugin
 			}
 			if (1 == index)									 // f1: max PWM %
 			{
-				max = Convert.ToByte(F7.Settings.Prop[index]);
+				max = (byte)Default(index);
 				if (min > max && min > 1)
 				{
 					Info($"State(min) reduced from {min} to 1");
@@ -82,7 +82,7 @@ namespace Fake8plugin
 			}
 			else if (2 == index)
 			{
-				min = Convert.ToByte(F7.Settings.Prop[index]);
+				min = (byte)Default(index);
 				if (min > max && min > 1)
 				{
 					Info($"State(min) reduced from {min} to 1");
@@ -96,7 +96,7 @@ namespace Fake8plugin
 			{
 				int pulse = (rise + hold + fall) << 1;
 
-				period = UInt16.Parse(F7.Settings.Prop[index]);
+				period = Default(index);
 				if (period < pulse)
 				{
 					Fake8.msg = $"State(period) increased from {period} to {pulse}";
@@ -107,11 +107,11 @@ namespace Fake8plugin
 					state = 1;
 			}
 			else if (6 == index)
-			 	rise = UInt16.Parse(F7.Settings.Prop[index]);
+			 	rise = Default(index);
 			else if (7 == index)
-			 	hold = UInt16.Parse(F7.Settings.Prop[index]);
+			 	hold = Default(index);
 			else if (8 == index)
-			 	fall = UInt16.Parse(F7.Settings.Prop[index]);
+			 	fall = Default(index);
 			else ret = false;
 /*
 			// for looping
@@ -140,18 +140,32 @@ namespace Fake8plugin
 			return ret;
 		}												// State()
 
+		private UInt16 Default(byte i)
+		{
+			string prop = F7.Settings.Prop[i];
+			UInt16[] array = { 1146, 57, 1, 23, 23, 22, 28, 28, 29, 1, 0 };
+
+			if (null != prop && 0 < prop.Length)
+				return UInt16.Parse(prop);
+			else return array[i];
+		}
+
 		/// <summary>
 		/// [re]initialize state machine settings and restart
 		/// </summary>
 		internal bool Reset(byte index)
 		{
 			error = count = state = 0;
-			max = Convert.ToByte(F7.Settings.Prop[1]);
-			min = Convert.ToByte(F7.Settings.Prop[2]);
-			period = UInt16.Parse(F7.Settings.Prop[5]);
-			rise = UInt16.Parse(F7.Settings.Prop[6]);
-			hold = UInt16.Parse(F7.Settings.Prop[7]);
-			fall = UInt16.Parse(F7.Settings.Prop[8]);
+			max = (byte)Default(1);
+			min = (byte)Default(2);
+			numerator = Default(3);
+			damping = Default(4);
+			attenuation = Default(10);
+			period = Default(5);
+			rise = Default(6);
+			hold = Default(7);
+			fall = Default(8);
+			verbosity = (byte)Default(9);
 			if (period < (range = ((rise + hold + fall) << 1)))
 			{
 				Info(Fake8.msg  = $"Reset(period) increased from {period} to {range}");
