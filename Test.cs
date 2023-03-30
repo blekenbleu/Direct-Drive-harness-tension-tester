@@ -119,7 +119,13 @@ namespace Fake8plugin
 			else if (10 == index)
 				attenuation = Default(index);
 			else if (9 == index)
-				verbosity = (byte)Default(index);
+			{
+				if (verbosity != Default(index))
+				{
+					byte[] v = { (byte)(1 | cmd[0]), verbosity = (byte)Default(index) };
+					F8.TryWrite(v, 2);
+				}
+			}
 			else if (5 == index)
 			{
 				int pulse = (rise + hold + fall) << 1;
