@@ -25,7 +25,7 @@ namespace Fake8plugin
 		byte max, min, verbosity;
 		byte[] cmd, buffer;								// cmd[0] is Arduino PWM command, cmd[1] is PWM 7-bit value
 		ushort rise, hold, fall;
-		ushort count, period, numerator, damping, attenuation;
+		ushort count, period, granularity, damping, attenuation;
 		int error, range;
 		Fake8 F8;
 		Fake7 F7;
@@ -37,6 +37,26 @@ namespace Fake8plugin
 		{
 			SimHub.Logging.Current.Info(F7.old = "Test." + str);						// bool Info()
 			return true;
+		}
+
+		/// <summary>
+        /// Apply high-pass IIR to PWM
+        /// </summary>
+		private bool PWM(int c)
+		{
+			int d = c - buffer[0];
+			int lp = c + (d * granularity + ((granularity + damping) >>1)) / (granularity + damping);
+			buffer[0] = (byte)(1 > lp ? 1 : lp);
+			d = c + (d * granularity + ((granularity + attenuation) >> 1)) / (granularity + attenuation);
+			d = (byte)(1 > d ? 1 : (100 < d) ? 100 : d);
+			if (d != cmd[1])
+			{
+				cmd[1] = (byte)d;
+				F8.TryWrite(cmd, 2);
+				cmd[1] = (byte)c;
+				return true;
+			}
+			return false;
 		}
 
 		/// <summary>
@@ -92,6 +112,14 @@ namespace Fake8plugin
 					state = 1;
 				range = max - min;					// think positive
 			}
+			else if (3 == index)
+				granularity = Default(index);
+			else if (4 == index)
+				damping = Default(index);
+			else if (10 == index)
+				attenuation = Default(index);
+			else if (9 == index)
+				verbosity = (byte)Default(index);
 			else if (5 == index)
 			{
 				int pulse = (rise + hold + fall) << 1;
@@ -142,12 +170,22 @@ namespace Fake8plugin
 
 		private UInt16 Default(byte i)
 		{
-			string prop = F7.Settings.Prop[i];
-			UInt16[] array = { 1146, 57, 1, 23, 23, 22, 28, 28, 29, 1, 0 };
+			try
+			{
+				return UInt16.Parse(F7.Settings.Prop[i]);
+			}
+			catch
+			{
+				UInt16[] array = { 1146, 57, 1, 23, 23, 22, 28, 28, 29, 1, 0, 0 };
 
-			if (null != prop && 0 < prop.Length)
-				return UInt16.Parse(prop);
-			else return array[i];
+				if (i >= F7.Settings.Prop.Length)
+				{
+					Info($"Default({i}): invalid index");
+					return 1;
+				}
+				Info($"Default({i}): invalid '{F7.Settings.Prop[i]}'");
+				return array[i];
+			}
 		}
 
 		/// <summary>
@@ -158,7 +196,7 @@ namespace Fake8plugin
 			error = count = state = 0;
 			max = (byte)Default(1);
 			min = (byte)Default(2);
-			numerator = Default(3);
+			granularity = Default(3);
 			damping = Default(4);
 			attenuation = Default(10);
 			period = Default(5);
@@ -179,11 +217,14 @@ namespace Fake8plugin
 		/// <summary>
 		/// Test state machine; constant max, min in states 2, 4
 		/// Bresenham rise and fall in states 1 and 3
+		/// invoke PWM() for each invocation to process high-pass steps
 		/// </summary>
-		internal void Run()
+		internal bool Run()
 		{
+			int dy;
+
 			if (0 == state)
-				return;
+				return PWM(cmd[1]);		// continue any high-pass filtering
 
 			count++;
 			if ( count >= period)
@@ -191,7 +232,7 @@ namespace Fake8plugin
 				if (!start)
 				{
 					state = 0;
-					return;
+					return PWM(cmd[1]);	// continue any high-pass filtering
 				}	
 				state = 1;
 				error = count = 0;
@@ -203,22 +244,17 @@ namespace Fake8plugin
 				else {
 					start = false;
 					if (0 == rise)
-						cmd[1] = max;
-					else
-					{
-						int dy = error + range;
+						return PWM(max);
 
-						error = dy % rise;
-						dy /= rise;
-						if (range < (error << 1))
-						{
-							error -= rise;
-							dy++;
-						}
-						cmd[1] += (byte)dy;		
+					dy = error + range;
+					error = dy % rise;
+					dy /= rise;
+					if (range < (error << 1))
+					{
+						error -= rise;
+						dy++;
 					}
-					F8.TryWrite(cmd, 2);
-					return;
+					return PWM(cmd[1] + dy);		
 				}
 			}	
 			if (2 == state)
@@ -226,43 +262,28 @@ namespace Fake8plugin
 				error = 0;
 				if (count > rise + hold)
 					state++;
-				else if (cmd[1] != max)
-				{
-					cmd[1] = max;
-					F8.TryWrite(cmd, 2);
-					return;
-				}
+				else return PWM(max);		// F8.TryWrite(cmd, 2);
 			}	
 			if (3 == state)
 			{
 				if (count > rise + hold + fall)
 					state++;
+				else if (0 == fall)
+					return PWM(min);
 				else
 				{
-					if (0 == fall)
-						cmd[1] = min;
-					else
+					dy = error + range;
+					error = dy % fall;
+					dy /= fall;
+					if (range < (error << 1))
 					{
-						int dy = error + range;
-
-						error = dy % fall;
-						dy /= fall;
-						if (range < (error << 1))
-						{
-							error -= fall;
-							dy++;
-						}
-						cmd[1] -= (byte)dy;		
+						error -= fall;
+						dy++;
 					}
-					F8.TryWrite(cmd, 2);
-					return;
+					return PWM(cmd[1] - dy);		
 				}
 			}	
-			if (4 == state && cmd[1] != min)
-			{
-				cmd[1] = min;
-				F8.TryWrite(cmd, 2);
-			}
+			return PWM((4 == state) ? min : cmd[1]);		// F8.TryWrite(cmd, 2);
 			// could check for invalid state here...
 		}
 
