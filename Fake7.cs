@@ -12,7 +12,7 @@ namespace Fake8plugin
 	public class FakeSettings				 		// saved while plugin restarts
 	{
 		public byte[] Value { get; set; } = { 0 };
-		public string[] Prop { get; set; } = { "","","","","","","","","","","" };
+		public string[] Prop { get; set; } = { "1146", "57", "1", "23", "23", "22", "28", "28", "29", "1", "0" };
 	}
 
 	[PluginDescription("fake serial device plugin to SimHub Custom Serial via com0com null modem")]
