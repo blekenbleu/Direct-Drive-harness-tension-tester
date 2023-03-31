@@ -92,7 +92,7 @@ namespace Fake8plugin
 				}
 				if (max <= min)
 				{
-					Fake8.msg = $"State(max) increased from {max} to {min+1}";
+					Fake8.msg = $"# State(max) increased from {max} to {min+1}";
 					F8.CustomWrite(Fake8.msg + "\n");
 					max = min;
 					max++;
@@ -136,7 +136,7 @@ namespace Fake8plugin
 				period = Default(index);
 				if (period < pulse)
 				{
-					Fake8.msg = $"State(period) increased from {period} to {pulse}";
+					Fake8.msg = $"# State(period) increased from {period} to {pulse}";
 					F8.CustomWrite(Fake8.msg + "\n");
 					period = (ushort)pulse;
 				}
