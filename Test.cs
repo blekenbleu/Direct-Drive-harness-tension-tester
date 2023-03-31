@@ -22,7 +22,8 @@ namespace Fake8plugin
 	{
 		bool start;
 		byte state;										// 0=reset, 1=rise, 2=hold, 3=fall, 4=wait
-		byte max, min, verbosity;
+		byte max, min;
+		internal byte verbosity;
 		byte[] cmd, buffer;								// cmd[0] is Arduino PWM command, cmd[1] is PWM 7-bit value
 		ushort rise, hold, fall;
 		ushort count, period, granularity, damping, attenuation;
@@ -52,6 +53,8 @@ namespace Fake8plugin
 			if (d != cmd[1])
 			{
 				cmd[1] = (byte)d;
+				if (2 == verbosity)
+					F8.CustomWrite($"{c}\t");	// e.g. gnuplot unfiltered vs filtered
 				F8.TryWrite(cmd, 2);
 				cmd[1] = (byte)c;
 				return true;
