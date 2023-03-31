@@ -97,7 +97,7 @@ namespace Fake8plugin
 
 		internal void Newline()
 		{
-			if (0 < col && CustomWrite("\n"))
+			if (2 == T.verbosity || 0 < col && CustomWrite("\n"))
 				col = 0;
 		}
 
