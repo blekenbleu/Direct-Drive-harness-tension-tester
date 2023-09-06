@@ -1,5 +1,6 @@
 [*other content*](content.md)  
 
+*clone this in* `SimHub\PluginSdk\`:  
 # SimHub plugin for Direct Drive harness tension control
  with [Arduino sketch](https://github.com/blekenbleu/Arduino-Blue-Pill/tree/main/PWM_FullConfiguration)
  and [SimHub Custom Serial profile](https://raw.githubusercontent.com/blekenbleu/SimHub-profiles/main/highpass.shsds) 
