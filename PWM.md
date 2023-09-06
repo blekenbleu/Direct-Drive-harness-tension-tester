@@ -1,7 +1,7 @@
 ## PWM: digital dither for efficient (*but noisy*) analog control
 Pulse density modulation is one alternative to [Pulse Width Modulation](https://www.picotech.com/library/application-note/some-power-pwm-drivers-for-electric-dc-motors),  
 with the advantage of being more easily lossless,  
-since presence or absense of fixed with pulses at fixed intervals is more robustly detected,  
+since presence or absense of fixed width pulses at fixed intervals is more robustly detected,  
 but for driving typical relatively slowly reponding loads,  
 PWM offers finer granularity at lower implementation cost, and consequently gets used for
 * hobby servos
