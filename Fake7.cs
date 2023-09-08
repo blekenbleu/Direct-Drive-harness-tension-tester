@@ -1,15 +1,12 @@
 ﻿using GameReaderCommon;
 using SimHub.Plugins;
 using System;
-using System.IO;
 using System.IO.Ports;
-using System.Threading;
-using System.Timers;
 
 namespace Fake8plugin
 {
-	// these must be public
-	public class FakeSettings				 		// saved while plugin restarts
+    // these must be public
+    public class FakeSettings				 		// saved while plugin restarts
 	{
 		public byte[] Value { get; set; } = { 0 };
 		public string[] Prop { get; set; } = { "1146", "57", "1", "23", "23", "22", "28", "28", "29", "1", "0" };

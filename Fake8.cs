@@ -1,10 +1,6 @@
-﻿using GameReaderCommon;
-using SimHub.Plugins;
+﻿using SimHub.Plugins;
 using System;
-using System.IO;
 using System.IO.Ports;
-using System.Threading;
-using System.Timers;
 
 /* Tension test sliders
  ; https://github.com/blekenbleu/SimHub-profiles/blob/main/Fake8.shsds
@@ -22,7 +18,7 @@ using System.Timers;
 
 namespace Fake8plugin
 {
-	public class Fake8		// handle real Arduino USB COM por with 8-bit data
+    public class Fake8		// handle real Arduino USB COM por with 8-bit data
 	{
 		private static SerialPort Arduino;
 		private Test T;
