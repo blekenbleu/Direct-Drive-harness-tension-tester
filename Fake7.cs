@@ -5,8 +5,8 @@ using System.IO.Ports;
 
 namespace Fake8plugin
 {
-    // these must be public
-    public class FakeSettings				 		// saved while plugin restarts
+	// these must be public
+	public class FakeSettings				 		// saved while plugin restarts
 	{
 		public byte[] Value { get; set; } = { 0 };
 		public string[] Prop { get; set; } = { "1146", "57", "1", "23", "23", "22", "28", "28", "29", "1", "0" };
@@ -24,6 +24,7 @@ namespace Fake8plugin
 		internal readonly string Ini = "DataCorePlugin.ExternalScript.Fake8";
 		private string[] Label;
 		internal bool running;						// Fake8.CustomWrite() uses
+		private byte count;							// CustomSerial recovery count
 		internal SerialPort CustomSerial;			// SimHub Custom Serial device via com0com;  Fake8.Recover() uses
 		internal string old;						// used in Test.Info(); must be static if used in a static method
 
@@ -126,6 +127,17 @@ namespace Fake8plugin
 					running = false;							// recovery in Fake8.Fake8receiver()
 				}
 			}
+			else if (60 < ++count)								// perhaps Custom Serial device not enabled
+			{
+				count = 0;										// retry once per second
+				if (running = F8.Recover(CustomSerial))
+					try
+					{
+						CustomSerial.Write(F8.csw);
+						old = "Custom Serial connection recovered";
+					}
+					catch { running = false; }
+			}
 			F8.Run();											// property changes drive Arduino.Write()
 		}
 
@@ -206,6 +218,7 @@ namespace Fake8plugin
 
 			old = "old";
 			CustomSerial = new SerialPort();
+			count = 0;
 			F8 = new Fake8();
 
 // Load settings, create properties

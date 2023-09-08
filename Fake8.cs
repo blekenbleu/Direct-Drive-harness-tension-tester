@@ -24,17 +24,18 @@ namespace Fake8plugin
 		private Test T;
 		private Fake7 F7;
 		bool ongoing;						// Arduino port statu flag
-		static internal string Ini = "F7.";		// SimHub's property prefix for this plugin
-		private string[] Prop, b4;					// kill duplicated Custom Serial messages
+		static internal string Ini = "F7.";	// SimHub's property prefix for this plugin
+		private string[] Prop, b4;			// kill duplicated Custom Serial messages
 		private int col;
-		static internal string msg;					// user feedback property:  Msg_Arduino
+		static internal string msg;         // user feedback property:  Msg_Arduino
+		internal string csw;					// perhaps sent in Fake7.DataUpdate()
 
 		/// <summary>
 		/// wraps SimHub.Logging.Current.Info() with prefix
 		/// </summary>
 		private static bool Info(string str)
 		{
-			SimHub.Logging.Current.Info("Fake8." + str);								// bool Info()
+			SimHub.Logging.Current.Info("Fake8." + str);	// bool Info()
 			return true;
 		}
 
@@ -78,7 +79,7 @@ namespace Fake8plugin
 			catch (Exception e)
 			{
 				if (F7.running)
-					F7.old = "Custom Serial:  " + e.Message + $" during Write({received})";
+					F7.old = "Custom Serial:  " + e.Message + $" during Write({csw=received})";
 				if (F7.running = Recover(F7.CustomSerial))
 					try
 					{
