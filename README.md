@@ -2,7 +2,7 @@
 
 *clone this in* `SimHub\PluginSdk\`:  
 # SimHub plugin for Direct Drive harness tension control
- with [Arduino sketch](https://github.com/blekenbleu/Arduino-Blue-Pill/tree/main/PWM_FullConfiguration)
+ with [Arduino STM32 Plue pill sketch](https://github.com/blekenbleu/Arduino-Blue-Pill/tree/main/PWM_FullConfiguration)
  and [SimHub Custom Serial profile](https://raw.githubusercontent.com/blekenbleu/SimHub-profiles/main/highpass.shsds) 
  for scooter motor [**PWM**](PWM.md) torque control:  
  ![](https://raw.githubusercontent.com/blekenbleu/Fake8/main/Fake8.png)  
