@@ -19,7 +19,13 @@ where PWM % directly relates to stall torque (tension).
 A stalled electric motor generates no [back EMF](https://en.wikipedia.org/wiki/Counter-electromotive_force),
 consequently needing much lower than rated motor Voltage.  
 [Electric scooter motors](https://www.amazon.com/dp/B09KRGZX3G?tag=racedep-20)
-seemingly deliver appropriate torque for direct drive harness tensioning, [as discussed here](https://www.racedepartment.com/threads/2dof-harness-tensionner-with-fly-ptmover.194331/page-9#post-3531954).  
+seemingly deliver appropriate torque for direct drive harness tensioning,
+[as discussed here](https://www.racedepartment.com/threads/2dof-harness-tensionner-with-fly-ptmover.194331/page-9#post-3531954).  
+[Lebois Racing](https://lebois-racing.com/seat-belt-tensioner-gt/) also has a
+[scooter motor tensioner for SimHub](https://lebois--racing-fr.translate.goog/tensionneur-harnais-simracing-gt?_x_tr_sl=auto&_x_tr_tl=en&_x_tr_hl=en&_x_tr_pto=wapp)
+and [video](https://www.youtube.com/watch?v=pyTMKFmsWU4)  
+
+
 ![](https://m.media-amazon.com/images/I/71aZ-9HlhdL._SL1500_.jpg)  
 ... driven by [BTS7960 43A Motor Drivers](https://electropeak.com/learn/interfacing-bts7960-43a-high-power-motor-driver-module-with-arduino/):  
 ![](https://electropeak.com/learn/wp-content/uploads/2021/01/BTS7960-43A-Driver-Module.jpg)  
